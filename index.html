@@ -1,11 +1,11 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8">
+<!-- saved from url=(0053)https://brunogoeckingsilva-ui.github.io/IVCF20-BETIM/ -->
+<html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IVCF-20 — Estratificação de Risco | Betim APS</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="./index_files/xlsx.full.min.js.baixados"></script>
+<script src="./index_files/chart.umd.js.baixados"></script>
 <style>
 :root{--verde:#1D9E75;--verde-light:#e8f7f2;--amarelo:#EF9F27;--vermelho:#E24B4A;
   --bg:#f7f8fa;--borda:#e8eaed;--sub:#888;--fonte:'Segoe UI',system-ui,sans-serif}
@@ -191,15 +191,13 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
 <body>
 
 <!-- TELA DE LOGIN DO SISTEMA -->
-<div id="loginScreen" style="position:fixed;inset:0;background:linear-gradient(135deg,#0f4c35 0%,#1D9E75 60%,#2dc98a 100%);z-index:99999;display:flex;align-items:center;justify-content:center">
+<div id="loginScreen" style="position: fixed; inset: 0px; background: linear-gradient(135deg, rgb(15, 76, 53) 0%, rgb(29, 158, 117) 60%, rgb(45, 201, 138) 100%); z-index: 99999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s;">
   <div style="background:#fff;border-radius:18px;padding:40px 44px;width:340px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.25)">
     <div style="font-size:42px;margin-bottom:8px">👴</div>
     <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--sub);text-transform:uppercase;margin-bottom:4px">APS BETIM</div>
     <h2 style="font-size:18px;font-weight:700;color:#111;margin-bottom:4px">IVCF-20</h2>
     <p style="font-size:12px;color:var(--sub);margin-bottom:24px;line-height:1.5">Estratificação de Risco do Idoso<br>Secretaria Municipal de Saúde</p>
-    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso"
-      style="width:100%;padding:11px 14px;font-size:14px;text-align:center;border:2px solid var(--borda);border-radius:8px;outline:none;font-family:var(--fonte);letter-spacing:3px;margin-bottom:8px"
-      onkeydown="if(event.key==='Enter')confirmarLogin()">
+    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso" style="width:100%;padding:11px 14px;font-size:14px;text-align:center;border:2px solid var(--borda);border-radius:8px;outline:none;font-family:var(--fonte);letter-spacing:3px;margin-bottom:8px" onkeydown="if(event.key===&#39;Enter&#39;)confirmarLogin()">
     <div id="loginErro" style="font-size:11px;color:#E24B4A;font-weight:600;min-height:16px;margin-bottom:10px"></div>
     <button onclick="confirmarLogin()" style="width:100%;padding:11px;background:var(--verde);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fonte)">Entrar</button>
     <p style="font-size:10px;color:#ccc;margin-top:16px">Acesso restrito à equipe de gestão</p>
@@ -223,7 +221,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         <strong>IVCF-20 — XLS <span style="font-size:9px;font-weight:700;color:#888;background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:1px 5px;vertical-align:middle">🔒 GESTÃO</span></strong>
         Avaliações
       </div>
-      <span id="fileInfo"></span>
+      <span id="fileInfo">✅ Índice de vulnerabilidade clínico-funcional (IVCF-20) _ Idoso-2026-06-18_10-59-45.xls</span>
     </label>
     <!-- Upload SIAPS Idosos -->
     <label class="upload-zone" id="uploadZoneSiaps" style="border-color:#6c8ebf">
@@ -238,22 +236,22 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
     <!-- Seletor de ano -->
     <div id="anoSelectorWrap" style="display:none;align-items:center;gap:8px">
       <label style="font-size:11px;color:var(--sub)">Ano ativo:</label>
-      <select id="anoSelector" onchange="trocarAno()" style="font-size:13px;font-weight:600;padding:5px 10px;border:2px solid var(--verde);border-radius:6px;color:var(--verde);background:#fff;cursor:pointer"></select>
+      <select id="anoSelector" onchange="trocarAno()" style="font-size:13px;font-weight:600;padding:5px 10px;border:2px solid var(--verde);border-radius:6px;color:var(--verde);background:#fff;cursor:pointer"><option value="2026">2026 ✦ ativo</option></select>
     </div>
   </div>
 </header>
 
 <main>
-  <div class="data-info"><span>📋</span><span id="dataInfoText">Dados: 10/06/2026 &nbsp;|&nbsp; Profissionais: <b>164</b> &nbsp;|&nbsp; Unidades: <b>39</b></span>
+  <div class="data-info"><span>📋</span><span id="dataInfoText">Dados: <b>18/06/2026</b> &nbsp;|&nbsp; Profissionais: <b>173</b> &nbsp;|&nbsp; Unidades: <b>39</b></span>
     <span id="siapsRef" style="font-size:11px;color:var(--sub);margin-left:10px">👴 Idosos: Relatório Qualidade ABR/2026 · <b>29.028</b> vinculados</span>
     <span id="anoBadge" style="margin-left:auto;background:var(--verde);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px">Ciclo 2026</span>
   </div>
 
   <div class="summary-row">
-    <div class="card"><div class="lbl">Total avaliados</div><div class="val n" id="sTotal">3.074</div><div class="sdelta" id="sDeltaTotal"></div></div>
-    <div class="card"><div class="lbl">Alto risco</div><div class="val r" id="sAlto">600</div><div class="spct" id="sAltoP">19,5% dos avaliados</div><div class="sdelta" id="sDeltaAlto"></div></div>
-    <div class="card"><div class="lbl">Médio risco</div><div class="val a" id="sMedio">638</div><div class="spct" id="sMedioP">20,8% dos avaliados</div><div class="sdelta" id="sDeltaMedio"></div></div>
-    <div class="card"><div class="lbl">Baixo risco</div><div class="val g" id="sBaixo">1.836</div><div class="spct" id="sBaixoP">59,7% dos avaliados</div><div class="sdelta" id="sDeltaBaixo"></div></div>
+    <div class="card"><div class="lbl">Total avaliados</div><div class="val n" id="sTotal">3.330</div><div class="sdelta" id="sDeltaTotal">+256 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Alto risco</div><div class="val r" id="sAlto">653</div><div class="spct" id="sAltoP">19.6% dos avaliados</div><div class="sdelta" id="sDeltaAlto">+53 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Médio risco</div><div class="val a" id="sMedio">701</div><div class="spct" id="sMedioP">21.1% dos avaliados</div><div class="sdelta" id="sDeltaMedio">+63 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Baixo risco</div><div class="val g" id="sBaixo">1.976</div><div class="spct" id="sBaixoP">59.3% dos avaliados</div><div class="sdelta" id="sDeltaBaixo">+140 vs. carga anterior</div></div>
   </div>
 
   <div class="tabs">
@@ -277,12 +275,12 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         </select></div>
       <div class="ctrl"><label>Mostrar</label>
         <select id="pTop" onchange="buildProf()">
-          <option value="10">Top 10</option><option value="20" selected>Top 20</option>
-          <option value="30">Top 30</option><option value="50">Top 50</option><option value="9999">Todos (164)</option>
-        </select></div>
+          <option value="10">Top 10</option><option value="20" selected="">Top 20</option>
+          <option value="30">Top 30</option><option value="50">Top 50</option>
+        <option value="9999">Todos (173)</option></select></div>
     </div>
     <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
-    <div class="chart-scroll" id="wP"></div>
+    <div class="chart-scroll" id="wP"><canvas id="cP" width="1385" style="display: block; width: 1108px; height: 570px; box-sizing: border-box;" height="712"></canvas></div>
   </div>
 
   <!-- UNIDADE -->
@@ -295,38 +293,37 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         </select></div>
       <div class="ctrl"><label>Mostrar</label>
         <select id="uTop" onchange="buildUnit()">
-          <option value="10">Top 10</option><option value="20" selected>Top 20</option><option value="9999">Todas (39)</option>
-        </select></div>
+          <option value="10">Top 10</option><option value="20" selected="">Top 20</option>
+        <option value="9999">Todas (39)</option></select></div>
     </div>
     <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
-    <div class="chart-scroll" id="wU"></div>
+    <div class="chart-scroll" id="wU"><canvas id="cU" width="1382" style="display: block; width: 1106px; height: 570px; box-sizing: border-box;" height="712"></canvas></div>
   </div>
 
   <!-- FAIXA -->
   <div class="panel" id="panel-faixa">
     <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
     <div class="chart-box"><div class="chart-box-title">Distribuição por faixa etária</div>
-      <div style="height:300px"><canvas id="cF" style="display:block"></canvas></div></div>
+      <div style="height:300px"><canvas id="cF" width="1385" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 1108px;"></canvas></div></div>
   </div>
 
   <!-- SEXO -->
   <div class="panel" id="panel-sexo">
     <div class="sexo-grid">
-      <div class="chart-box"><div class="sexo-title" id="sexoLabelF">Feminino — 1.920</div>
-        <div style="height:220px"><canvas id="cSF" style="display:block"></canvas></div></div>
-      <div class="chart-box"><div class="sexo-title" id="sexoLabelM">Masculino — 1.154</div>
-        <div style="height:220px"><canvas id="cSM" style="display:block"></canvas></div></div>
+      <div class="chart-box"><div class="sexo-title" id="sexoLabelF">Feminino — 2.063</div>
+        <div style="height:220px"><canvas id="cSF" width="667" height="275" style="display: block; box-sizing: border-box; height: 220px; width: 534px;"></canvas></div></div>
+      <div class="chart-box"><div class="sexo-title" id="sexoLabelM">Masculino — 1.267</div>
+        <div style="height:220px"><canvas id="cSM" width="667" height="275" style="display: block; box-sizing: border-box; height: 220px; width: 534px;"></canvas></div></div>
     </div>
     <div class="chart-box"><div class="chart-box-title">Comparativo por sexo</div>
       <div class="legend" style="justify-content:center"><span><span class="lsq" style="background:#E24B4A"></span>Alto</span><span><span class="lsq" style="background:#EF9F27"></span>Médio</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo</span></div>
-      <div style="height:240px"><canvas id="cSB" style="display:block"></canvas></div></div>
+      <div style="height:240px"><canvas id="cSB" width="1385" height="300" style="display: block; box-sizing: border-box; height: 240px; width: 1108px;"></canvas></div></div>
   </div>
 
   <!-- DETALHE -->
   <div class="panel" id="panel-detalhe">
     <div class="search-wrap">
-      <input type="text" id="profSearch" placeholder="Digite o nome do profissional..."
-             oninput="filterProfs()" onfocus="openDropdown()" autocomplete="off">
+      <input type="text" id="profSearch" placeholder="Digite o nome do profissional..." oninput="filterProfs()" onfocus="openDropdown()" autocomplete="off">
       <div class="dropdown" id="profDropdown"></div>
     </div>
     <div id="profDetail"><div class="no-sel">Selecione um profissional para ver os detalhes</div></div>
@@ -383,14 +380,13 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
 </main>
 
 <!-- MODAL DE SENHA -->
-<div id="senhaModal" class="modal-overlay" style="display:none">
+<div id="senhaModal" class="modal-overlay" style="display: none;">
   <div class="modal-box">
     <button class="modal-close" onclick="fecharModal()">✕</button>
     <div class="modal-icon">🔒</div>
     <h3>Acesso restrito à gestão</h3>
     <p>Esta função é exclusiva para gestores autorizados.<br>Digite a senha de acesso para continuar.</p>
-    <input type="password" id="senhaInput" placeholder="••••••••" maxlength="30"
-           onkeydown="if(event.key==='Enter')confirmarSenha();if(event.key==='Escape')fecharModal()">
+    <input type="password" id="senhaInput" placeholder="••••••••" maxlength="30" onkeydown="if(event.key===&#39;Enter&#39;)confirmarSenha();if(event.key===&#39;Escape&#39;)fecharModal()">
     <div class="modal-error" id="senhaErro"></div>
     <div class="modal-btn-row">
       <button class="modal-btn secondary" onclick="fecharModal()">Cancelar</button>
@@ -1654,5 +1650,6 @@ function initCharts(){
   </div>
 </footer>
 
-</body>
-</html>
+
+
+</body></html>
