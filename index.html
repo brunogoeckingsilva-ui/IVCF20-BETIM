@@ -1,0 +1,1654 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>IVCF-20 — Estratificação de Risco | Betim APS</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+:root{--verde:#1D9E75;--verde-light:#e8f7f2;--amarelo:#EF9F27;--vermelho:#E24B4A;
+  --bg:#f7f8fa;--borda:#e8eaed;--sub:#888;--fonte:'Segoe UI',system-ui,sans-serif}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--fonte);background:var(--bg);color:#444;font-size:14px}
+/* HEADER */
+header{background:#fff;border-bottom:1px solid var(--borda);padding:12px 24px;
+  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
+  position:sticky;top:0;z-index:200;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.logo{background:var(--verde);color:#fff;font-size:11px;font-weight:700;
+  letter-spacing:.5px;padding:5px 10px;border-radius:6px;white-space:nowrap}
+header h1{font-size:15px;font-weight:600;color:#111}
+header .sub{font-size:11px;color:var(--sub);display:block;margin-top:1px}
+.upload-zone{display:flex;align-items:center;gap:8px;border:2px dashed var(--borda);
+  border-radius:8px;padding:7px 12px;cursor:pointer;transition:border-color .2s,background .2s;background:var(--bg)}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--verde);background:var(--verde-light)}
+#uploadZoneSiaps:hover,#uploadZoneSiaps.drag{border-color:#3b6cb5;background:#eef2fb}
+.upload-zone input{display:none}
+.upload-text{font-size:11px;color:var(--sub)}
+.upload-text strong{display:block;color:var(--verde);font-size:12px}
+#fileInfo{font-size:11px;color:var(--verde);font-weight:600}
+/* MAIN */
+main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
+/* CARDS RESUMO */
+.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
+.card{background:#fff;border-radius:10px;padding:13px 15px;border:1px solid var(--borda);box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.card .lbl{font-size:10px;color:var(--sub);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
+.card .val{font-size:24px;font-weight:700;line-height:1}
+.card .spct{font-size:11px;color:var(--sub);margin-top:3px}
+.card .sdelta{font-size:11px;margin-top:3px;color:var(--verde)}
+.val.r{color:var(--vermelho)}.val.a{color:#c07a00}.val.g{color:var(--verde)}.val.n{color:#111}
+.data-info{font-size:11px;color:var(--sub);background:var(--verde-light);border-radius:6px;
+  padding:6px 12px;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.data-info b{color:var(--verde)}
+/* TABS */
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--borda);margin-bottom:16px;overflow-x:auto}
+.tab{padding:8px 15px;cursor:pointer;color:var(--sub);border:none;background:none;
+  border-bottom:2px solid transparent;margin-bottom:-2px;font-size:12px;
+  font-family:var(--fonte);white-space:nowrap;font-weight:500;transition:color .15s}
+.tab.active{color:var(--verde);border-bottom-color:var(--verde);font-weight:600}
+.tab:hover:not(.active){color:#111}
+.panel{display:none}.panel.active{display:block}
+/* CONTROLES */
+.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.ctrl{display:flex;flex-direction:column;gap:3px}
+.ctrl label{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.3px}
+.ctrl select{font-size:12px;padding:5px 9px;border:1px solid var(--borda);
+  border-radius:6px;background:#fff;color:#111;cursor:pointer;outline:none}
+.ctrl select:focus{border-color:var(--verde)}
+.legend{display:flex;gap:14px;margin-bottom:8px;font-size:11px;color:var(--sub)}
+.legend span{display:flex;align-items:center;gap:4px}
+.lsq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
+.chart-scroll{width:100%;overflow-x:hidden;border:1px solid var(--borda);border-radius:8px;background:#fff}
+/* DETALHE PROF */
+.search-wrap{position:relative;margin-bottom:14px}
+.search-wrap input{width:100%;padding:9px 13px;font-size:13px;border:2px solid var(--borda);
+  border-radius:8px;outline:none;font-family:var(--fonte);background:#fff}
+.search-wrap input:focus{border-color:var(--verde)}
+.dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;
+  border:1px solid var(--borda);border-top:none;border-radius:0 0 8px 8px;
+  max-height:220px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.dropdown.open{display:block}
+.dropdown-item{padding:8px 13px;cursor:pointer;font-size:12px;border-bottom:1px solid #f5f5f5}
+.dropdown-item:hover,.dropdown-item.selected{background:var(--verde-light);color:var(--verde)}
+.item-count{float:right;font-size:11px;color:var(--sub)}
+.prof-banner{font-size:14px;font-weight:600;color:#111;padding:10px 13px;
+  background:var(--verde-light);border-radius:8px;border-left:4px solid var(--verde);margin-bottom:12px}
+.detail-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
+.detail-card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:11px 13px;text-align:center}
+.dc-lbl{font-size:10px;color:var(--sub);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
+.dc-val{font-size:22px;font-weight:700;line-height:1}
+.dc-sub{font-size:11px;color:var(--sub);margin-top:3px}
+.detail-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
+.dchart-box{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:12px}
+.dchart-box p{font-size:10px;color:var(--sub);text-align:center;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
+.no-sel{text-align:center;color:var(--sub);font-size:13px;padding:50px 0}
+.chart-box{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:14px;margin-bottom:12px}
+.chart-box-title{font-size:10px;color:var(--sub);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px}
+.sexo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.sexo-title{text-align:center;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:7px}
+
+/* ═══ EVOLUÇÃO MENSAL ═══ */
+.evol-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
+.evol-title{font-size:14px;font-weight:600;color:#111}
+.evol-sub{font-size:12px;color:var(--sub);margin-top:2px}
+.btn-clear{background:none;border:1px solid var(--borda);border-radius:6px;padding:5px 12px;
+  font-size:11px;color:var(--sub);cursor:pointer;font-family:var(--fonte)}
+.btn-clear:hover{border-color:var(--vermelho);color:var(--vermelho)}
+.no-history{text-align:center;padding:50px 20px;color:var(--sub);background:#fff;
+  border:1px solid var(--borda);border-radius:10px}
+.no-history .nh-icon{font-size:36px;margin-bottom:12px}
+.no-history h3{font-size:14px;color:#111;margin-bottom:6px}
+/* Seções de evolução */
+.evol-section{background:#fff;border:1px solid var(--borda);border-radius:10px;margin-bottom:16px;overflow:hidden}
+.evol-section-header{padding:12px 16px;border-bottom:1px solid var(--borda);display:flex;align-items:center;gap:8px}
+.evol-section-header .icon{font-size:16px}
+.evol-section-header .title{font-size:13px;font-weight:600;color:#111}
+.evol-section-header .badge{font-size:11px;color:var(--sub);background:var(--bg);
+  padding:2px 8px;border-radius:20px;border:1px solid var(--borda)}
+.evol-section-body{padding:14px 16px}
+/* Tabela evolução */
+.evol-table{width:100%;border-collapse:collapse;font-size:12px}
+.evol-table th{text-align:left;padding:7px 10px;background:var(--bg);color:var(--sub);
+  font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--borda)}
+.evol-table td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.evol-table tr:last-child td{border-bottom:none}
+.evol-table tr:hover td{background:#fafafa}
+.evol-table .num{text-align:right;font-weight:600}
+.evol-table .delta-cell{text-align:right;font-size:11px}
+.delta-up{color:var(--verde)}.delta-dn{color:var(--vermelho)}.delta-eq{color:var(--sub)}
+.badge-new{background:#e8f7f2;color:var(--verde);font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:20px;border:1px solid var(--verde)}
+.badge-absent{background:#fff3f3;color:var(--vermelho);font-size:10px;font-weight:700;
+  padding:2px 7px;border-radius:20px;border:1px solid #f5b8b8}
+.badge-unit{background:#f0f4ff;color:#3b5bdb;font-size:10px;padding:1px 6px;border-radius:4px}
+/* Gráfico evolução total */
+.evol-chart-wrap{height:240px;position:relative}
+/* Mês pill nav */
+.month-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.month-pill{padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;
+  border:1px solid var(--borda);background:#fff;color:var(--sub);transition:all .15s}
+.month-pill.active{background:var(--verde);color:#fff;border-color:var(--verde);font-weight:600}
+.month-pill:hover:not(.active){border-color:var(--verde);color:var(--verde)}
+
+@media(max-width:600px){
+  .summary-row{grid-template-columns:1fr 1fr}
+  .detail-cards{grid-template-columns:1fr 1fr}
+  .detail-charts{grid-template-columns:1fr}
+  .sexo-grid{grid-template-columns:1fr}
+  header{padding:10px 14px}
+}
+/* ── MODAL DE SENHA ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:10000;
+  display:flex;align-items:center;justify-content:center;
+  animation:fadeIn .15s ease
+}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  background:#fff;border-radius:14px;padding:32px 36px;
+  box-shadow:0 16px 48px rgba(0,0,0,0.22);
+  width:320px;text-align:center;position:relative
+}
+.modal-box .modal-icon{font-size:36px;margin-bottom:10px}
+.modal-box h3{font-size:16px;font-weight:700;color:#111;margin-bottom:4px}
+.modal-box p{font-size:12px;color:var(--sub);margin-bottom:18px;line-height:1.5}
+.modal-box input[type=password]{
+  width:100%;padding:10px 14px;font-size:15px;text-align:center;
+  border:2px solid var(--borda);border-radius:8px;outline:none;
+  font-family:var(--fonte);letter-spacing:3px;margin-bottom:6px
+}
+.modal-box input[type=password]:focus{border-color:var(--verde)}
+.modal-box input[type=password].error{border-color:var(--vermelho);animation:shake .3s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}75%{transform:translateX(6px)}}
+.modal-error{font-size:11px;color:var(--vermelho);margin-bottom:12px;min-height:16px;font-weight:600}
+.modal-btn-row{display:flex;gap:10px}
+.modal-btn{flex:1;padding:9px;border-radius:8px;border:none;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--fonte)}
+.modal-btn.primary{background:var(--verde);color:#fff}
+.modal-btn.primary:hover{background:#178a64}
+.modal-btn.secondary{background:var(--bg);color:var(--sub);border:1px solid var(--borda)}
+.modal-btn.secondary:hover{background:var(--borda)}
+.modal-close{position:absolute;top:12px;right:14px;background:none;border:none;font-size:18px;cursor:pointer;color:var(--sub);line-height:1}
+.modal-close:hover{color:#111}
+/* COBERTURA */
+.cob-table{width:100%;border-collapse:collapse;font-size:12px}
+.cob-table th{text-align:left;padding:8px 10px;background:var(--bg);color:var(--sub);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--borda);position:sticky;top:0}
+.cob-table td{padding:8px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.cob-table tr:last-child td{border-bottom:none}
+.cob-table tr:hover td{background:#fafafa}
+.cob-table .num{text-align:right;font-weight:600;white-space:nowrap}
+.cob-bar-wrap{display:flex;align-items:center;gap:8px;min-width:160px}
+.cob-bar-bg{flex:1;height:10px;background:#f0f0f0;border-radius:5px;overflow:hidden}
+.cob-bar-fill{height:100%;border-radius:5px;transition:width .3s}
+.cob-pct{font-weight:700;font-size:12px;white-space:nowrap;min-width:42px;text-align:right}
+.cob-sem{color:#aaa;font-style:italic;font-size:11px}
+.cob-card-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:14px}
+.cob-card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:11px 13px;text-align:center}
+.cob-card .lbl{font-size:10px;color:var(--sub);margin-bottom:4px;text-transform:uppercase}
+.cob-card .val{font-size:20px;font-weight:700}
+.cob-scroll{max-height:540px;overflow-y:auto;border:1px solid var(--borda);border-radius:8px;background:#fff}
+</style>
+</head>
+<body>
+
+<!-- TELA DE LOGIN DO SISTEMA -->
+<div id="loginScreen" style="position:fixed;inset:0;background:linear-gradient(135deg,#0f4c35 0%,#1D9E75 60%,#2dc98a 100%);z-index:99999;display:flex;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:18px;padding:40px 44px;width:340px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.25)">
+    <div style="font-size:42px;margin-bottom:8px">👴</div>
+    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--sub);text-transform:uppercase;margin-bottom:4px">APS BETIM</div>
+    <h2 style="font-size:18px;font-weight:700;color:#111;margin-bottom:4px">IVCF-20</h2>
+    <p style="font-size:12px;color:var(--sub);margin-bottom:24px;line-height:1.5">Estratificação de Risco do Idoso<br>Secretaria Municipal de Saúde</p>
+    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso"
+      style="width:100%;padding:11px 14px;font-size:14px;text-align:center;border:2px solid var(--borda);border-radius:8px;outline:none;font-family:var(--fonte);letter-spacing:3px;margin-bottom:8px"
+      onkeydown="if(event.key==='Enter')confirmarLogin()">
+    <div id="loginErro" style="font-size:11px;color:#E24B4A;font-weight:600;min-height:16px;margin-bottom:10px"></div>
+    <button onclick="confirmarLogin()" style="width:100%;padding:11px;background:var(--verde);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fonte)">Entrar</button>
+    <p style="font-size:10px;color:#ccc;margin-top:16px">Acesso restrito à equipe de gestão</p>
+  </div>
+</div>
+
+<header>
+  <div style="display:flex;align-items:center;gap:10px;flex-shrink:0">
+    <div class="logo">APS BETIM</div>
+    <div>
+      <h1>IVCF-20 — Estratificação de Risco do Idoso</h1>
+      <span class="sub">Secretaria Municipal de Saúde · Atenção Primária à Saúde</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">
+    <!-- Upload IVCF-20 -->
+    <label class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" accept=".xls,.xlsx">
+      <span style="font-size:18px">📂</span>
+      <div class="upload-text">
+        <strong>IVCF-20 — XLS <span style="font-size:9px;font-weight:700;color:#888;background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:1px 5px;vertical-align:middle">🔒 GESTÃO</span></strong>
+        Avaliações
+      </div>
+      <span id="fileInfo"></span>
+    </label>
+    <!-- Upload SIAPS Idosos -->
+    <label class="upload-zone" id="uploadZoneSiaps" style="border-color:#6c8ebf">
+      <input type="file" id="fileInputSiaps" accept=".xlsx">
+      <span style="font-size:18px">👴</span>
+      <div class="upload-text">
+        <strong style="color:#3b6cb5">SIAPS — Idosos <span style="font-size:9px;font-weight:700;color:#888;background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:1px 5px;vertical-align:middle">🔒 GESTÃO</span></strong>
+        Nº vinculados por equipe
+      </div>
+      <span id="fileInfoSiaps"></span>
+    </label>
+    <!-- Seletor de ano -->
+    <div id="anoSelectorWrap" style="display:none;align-items:center;gap:8px">
+      <label style="font-size:11px;color:var(--sub)">Ano ativo:</label>
+      <select id="anoSelector" onchange="trocarAno()" style="font-size:13px;font-weight:600;padding:5px 10px;border:2px solid var(--verde);border-radius:6px;color:var(--verde);background:#fff;cursor:pointer"></select>
+    </div>
+  </div>
+</header>
+
+<main>
+  <div class="data-info"><span>📋</span><span id="dataInfoText">Dados: 10/06/2026 &nbsp;|&nbsp; Profissionais: <b>164</b> &nbsp;|&nbsp; Unidades: <b>39</b></span>
+    <span id="siapsRef" style="font-size:11px;color:var(--sub);margin-left:10px">👴 Idosos: Relatório Qualidade ABR/2026 · <b>29.028</b> vinculados</span>
+    <span id="anoBadge" style="margin-left:auto;background:var(--verde);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px">Ciclo 2026</span>
+  </div>
+
+  <div class="summary-row">
+    <div class="card"><div class="lbl">Total avaliados</div><div class="val n" id="sTotal">3.074</div><div class="sdelta" id="sDeltaTotal"></div></div>
+    <div class="card"><div class="lbl">Alto risco</div><div class="val r" id="sAlto">600</div><div class="spct" id="sAltoP">19,5% dos avaliados</div><div class="sdelta" id="sDeltaAlto"></div></div>
+    <div class="card"><div class="lbl">Médio risco</div><div class="val a" id="sMedio">638</div><div class="spct" id="sMedioP">20,8% dos avaliados</div><div class="sdelta" id="sDeltaMedio"></div></div>
+    <div class="card"><div class="lbl">Baixo risco</div><div class="val g" id="sBaixo">1.836</div><div class="spct" id="sBaixoP">59,7% dos avaliados</div><div class="sdelta" id="sDeltaBaixo"></div></div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="unit">Por unidade</button>
+    <button class="tab" data-tab="cobertura">🎯 Cobertura por UBS</button>
+    <button class="tab" data-tab="prof">Por profissional</button>
+    <button class="tab" data-tab="detalhe">Detalhe por profissional</button>
+    <button class="tab" data-tab="faixa">Por faixa etária</button>
+    <button class="tab" data-tab="sexo">Por sexo</button>
+    <button class="tab" data-tab="evol">📈 Evolução mensal</button>
+    <button class="tab" data-tab="anual">📅 Arquivo anual</button>
+  </div>
+
+  <!-- PROFISSIONAL -->
+  <div class="panel" id="panel-prof">
+    <div class="controls">
+      <div class="ctrl"><label>Ordenar por</label>
+        <select id="pSort" onchange="buildProf()">
+          <option value="total">Total ↓</option><option value="alto">Alto risco</option>
+          <option value="medio">Médio risco</option><option value="baixo">Baixo risco</option><option value="nome">Nome A→Z</option>
+        </select></div>
+      <div class="ctrl"><label>Mostrar</label>
+        <select id="pTop" onchange="buildProf()">
+          <option value="10">Top 10</option><option value="20" selected>Top 20</option>
+          <option value="30">Top 30</option><option value="50">Top 50</option><option value="9999">Todos (164)</option>
+        </select></div>
+    </div>
+    <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
+    <div class="chart-scroll" id="wP"></div>
+  </div>
+
+  <!-- UNIDADE -->
+  <div class="panel active" id="panel-unit">
+    <div class="controls">
+      <div class="ctrl"><label>Ordenar por</label>
+        <select id="uSort" onchange="buildUnit()">
+          <option value="total">Total ↓</option><option value="alto">Alto risco</option>
+          <option value="medio">Médio risco</option><option value="baixo">Baixo risco</option><option value="nome">Nome A→Z</option>
+        </select></div>
+      <div class="ctrl"><label>Mostrar</label>
+        <select id="uTop" onchange="buildUnit()">
+          <option value="10">Top 10</option><option value="20" selected>Top 20</option><option value="9999">Todas (39)</option>
+        </select></div>
+    </div>
+    <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
+    <div class="chart-scroll" id="wU"></div>
+  </div>
+
+  <!-- FAIXA -->
+  <div class="panel" id="panel-faixa">
+    <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
+    <div class="chart-box"><div class="chart-box-title">Distribuição por faixa etária</div>
+      <div style="height:300px"><canvas id="cF" style="display:block"></canvas></div></div>
+  </div>
+
+  <!-- SEXO -->
+  <div class="panel" id="panel-sexo">
+    <div class="sexo-grid">
+      <div class="chart-box"><div class="sexo-title" id="sexoLabelF">Feminino — 1.920</div>
+        <div style="height:220px"><canvas id="cSF" style="display:block"></canvas></div></div>
+      <div class="chart-box"><div class="sexo-title" id="sexoLabelM">Masculino — 1.154</div>
+        <div style="height:220px"><canvas id="cSM" style="display:block"></canvas></div></div>
+    </div>
+    <div class="chart-box"><div class="chart-box-title">Comparativo por sexo</div>
+      <div class="legend" style="justify-content:center"><span><span class="lsq" style="background:#E24B4A"></span>Alto</span><span><span class="lsq" style="background:#EF9F27"></span>Médio</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo</span></div>
+      <div style="height:240px"><canvas id="cSB" style="display:block"></canvas></div></div>
+  </div>
+
+  <!-- DETALHE -->
+  <div class="panel" id="panel-detalhe">
+    <div class="search-wrap">
+      <input type="text" id="profSearch" placeholder="Digite o nome do profissional..."
+             oninput="filterProfs()" onfocus="openDropdown()" autocomplete="off">
+      <div class="dropdown" id="profDropdown"></div>
+    </div>
+    <div id="profDetail"><div class="no-sel">Selecione um profissional para ver os detalhes</div></div>
+  </div>
+
+  <!-- EVOLUÇÃO MENSAL -->
+  <div class="panel" id="panel-evol">
+    <div class="evol-header">
+      <div>
+        <div class="evol-title">Evolução Mensal das Equipes</div>
+        <div class="evol-sub">Histórico consolidado por carregamento de arquivo</div>
+      </div>
+      <button class="btn-clear" onclick="clearHistory()">🗑 Limpar histórico</button>
+    </div>
+    <div id="evolContent"><div class="no-history"><div class="nh-icon">📅</div><h3>Nenhum histórico registrado ainda</h3><p style="font-size:12px;margin-top:6px">Carregue arquivos XLS de meses diferentes.<br>O sistema registrará automaticamente cada período.</p></div></div>
+  </div>
+
+  <!-- ARQUIVO ANUAL -->
+  <div class="panel" id="panel-anual">
+    <div class="evol-header">
+      <div>
+        <div class="evol-title">📅 Arquivo Anual de Estratificação</div>
+        <div class="evol-sub">Histórico consolidado por ciclo anual (Jan–Dez). Cada ano reinicia a contagem do IVCF-20.</div>
+      </div>
+    </div>
+    <div id="anualContent"><div class="no-history"><div class="nh-icon">📅</div><h3>Apenas o ciclo atual registrado</h3><p style="font-size:12px;margin-top:6px">Ao carregar arquivos de anos diferentes, o sistema arquivará automaticamente cada ciclo anual completo.</p></div></div>
+  </div>
+
+  <!-- COBERTURA POR UBS -->
+  <div class="panel" id="panel-cobertura">
+    <div class="evol-header">
+      <div>
+        <div class="evol-title">🎯 Cobertura IVCF-20 por Unidade</div>
+        <div class="evol-sub">% de idosos vinculados à equipe (Relatório Qualidade ABR/2026) que foram avaliados pelo IVCF-20</div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <div style="display:flex;gap:8px;font-size:11px;flex-wrap:wrap">
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#c8951a;display:inline-block"></span>⭐ ≥ 90%</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#3b6cb5;display:inline-block"></span>≥ 60%</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#1D9E75;display:inline-block"></span>≥ 30%</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#EF9F27;display:inline-block"></span>15–29%</span>
+          <span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:#E24B4A;display:inline-block"></span>&lt; 15%</span>
+        </div>
+        <select id="cobSort" onchange="buildCobertura()" style="font-size:12px;padding:5px 9px;border:1px solid var(--borda);border-radius:6px">
+          <option value="cobertura">Cobertura ↓</option>
+          <option value="avaliados">Avaliados ↓</option>
+          <option value="cadastrados">Cadastrados ↓</option>
+          <option value="nome">Nome A→Z</option>
+        </select>
+      </div>
+    </div>
+    <div id="cobContent"></div>
+  </div>
+</main>
+
+<!-- MODAL DE SENHA -->
+<div id="senhaModal" class="modal-overlay" style="display:none">
+  <div class="modal-box">
+    <button class="modal-close" onclick="fecharModal()">✕</button>
+    <div class="modal-icon">🔒</div>
+    <h3>Acesso restrito à gestão</h3>
+    <p>Esta função é exclusiva para gestores autorizados.<br>Digite a senha de acesso para continuar.</p>
+    <input type="password" id="senhaInput" placeholder="••••••••" maxlength="30"
+           onkeydown="if(event.key==='Enter')confirmarSenha();if(event.key==='Escape')fecharModal()">
+    <div class="modal-error" id="senhaErro"></div>
+    <div class="modal-btn-row">
+      <button class="modal-btn secondary" onclick="fecharModal()">Cancelar</button>
+      <button class="modal-btn primary" onclick="confirmarSenha()">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════════
+// ESTADO E DADOS INICIAIS (10/06/2026)
+// ════════════════════════════════════════════════════════════════
+var STATE={
+  total:3074,alto:600,medio:638,baixo:1836,nProfs:164,nUnidades:39,
+  fileName:'10/06/2026',prev:null,
+  profs:[{"nome":"ALIERKYS LINARES NAVARRO","alto":7,"medio":11,"baixo":163,"total":181},{"nome":"PEDRO LAURO SOARES DE ALCANTARA","alto":24,"medio":7,"baixo":97,"total":128},{"nome":"MAURO ALBERTO DO ESPIRITO SANTO","alto":12,"medio":6,"baixo":107,"total":125},{"nome":"BRUNO GOECKING SILVA","alto":31,"medio":43,"baixo":47,"total":121},{"nome":"PEDRO HENRIQUE NOVAIS MACIEL","alto":15,"medio":13,"baixo":90,"total":118},{"nome":"JOAO VICTOR SA VIEIRA","alto":8,"medio":4,"baixo":102,"total":114},{"nome":"SAMUEL CAMARA","alto":5,"medio":17,"baixo":60,"total":82},{"nome":"RENATA DAMASIA DA ROCHA BRAGA GARANDY","alto":20,"medio":14,"baixo":45,"total":79},{"nome":"HELEN ZANANDREA SILVA OLIVEIRA","alto":3,"medio":24,"baixo":51,"total":78},{"nome":"FERNANDA GONCALVES MELO","alto":7,"medio":19,"baixo":44,"total":70},{"nome":"FLAVIANE DELUQUE FREITAS","alto":9,"medio":8,"baixo":51,"total":68},{"nome":"ADRIANO PAULO DE CASTRO","alto":4,"medio":8,"baixo":52,"total":64},{"nome":"LETICIA IZABEL AMARAL","alto":17,"medio":13,"baixo":26,"total":56},{"nome":"KARINA PEREIRA DE ARAUJO","alto":21,"medio":13,"baixo":21,"total":55},{"nome":"LEOCADIO DE LIMA","alto":3,"medio":11,"baixo":40,"total":54},{"nome":"MATHEUS PEREZ LOZADA","alto":7,"medio":6,"baixo":40,"total":53},{"nome":"LARISSA MORAIS RASTOLDO ARIOSO","alto":17,"medio":16,"baixo":20,"total":53},{"nome":"ESTEFANI DE OLIVEIRA PEREIRA","alto":5,"medio":12,"baixo":24,"total":41},{"nome":"SAMARA CHAVES RODRIGUES COSTA","alto":5,"medio":13,"baixo":23,"total":41},{"nome":"JOSELLE DE FREITAS","alto":5,"medio":14,"baixo":21,"total":40},{"nome":"RENATA OLIVEIRA CAETANO","alto":11,"medio":5,"baixo":23,"total":39},{"nome":"GUILHERME SOARES CARDOSO","alto":7,"medio":16,"baixo":16,"total":39},{"nome":"EVELYN MARIA VALERIO DE PAULA","alto":4,"medio":8,"baixo":25,"total":37},{"nome":"ERIKA FERNANDA CARLOS SOUZA","alto":4,"medio":10,"baixo":20,"total":34},{"nome":"IRODYS PEREZ DEL PINO","alto":6,"medio":10,"baixo":18,"total":34},{"nome":"LIZA MUNIQUE MARINHO LACERDA","alto":8,"medio":9,"baixo":16,"total":33},{"nome":"GABRIELA OLIVEIRA SOUSA","alto":7,"medio":7,"baixo":19,"total":33},{"nome":"NATALIA ANGELICA FERNANDES JORDAO","alto":0,"medio":5,"baixo":26,"total":31},{"nome":"JOAO VICTOR ANICIO FEITOSA SOUSA WERNEB","alto":10,"medio":6,"baixo":14,"total":30},{"nome":"TALITA GOECKING RUAS","alto":9,"medio":8,"baixo":13,"total":30},{"nome":"CAMILA DORNAS PINTO","alto":2,"medio":1,"baixo":27,"total":30},{"nome":"ANA LUIZA VELOSO LIMA","alto":13,"medio":6,"baixo":10,"total":29},{"nome":"TAINA NUNES ALMEIDA","alto":3,"medio":8,"baixo":17,"total":28},{"nome":"CAROLINA CHOUCAIR DE ANDRADE","alto":10,"medio":7,"baixo":11,"total":28},{"nome":"ADRIANA MARIA MARCAL","alto":1,"medio":6,"baixo":21,"total":28},{"nome":"DAIANE MAIRA FARIA CORREA","alto":0,"medio":4,"baixo":24,"total":28},{"nome":"NARDA FAVIOLA CONROY RADA","alto":13,"medio":8,"baixo":7,"total":28},{"nome":"INGRID SILVA PRADO","alto":10,"medio":5,"baixo":12,"total":27},{"nome":"RENATA BUSCIOLI TEIXEIRA","alto":5,"medio":7,"baixo":14,"total":26},{"nome":"THAIS MAIA RIBEIRO","alto":12,"medio":9,"baixo":5,"total":26},{"nome":"ANDRE MENDES TEIXEIRA","alto":7,"medio":7,"baixo":11,"total":25},{"nome":"MARIA EMILIA SOARES RIBEIRO","alto":0,"medio":7,"baixo":17,"total":24},{"nome":"LOURANNY CRISTINA BORBA GOIS","alto":3,"medio":11,"baixo":10,"total":24},{"nome":"MARIANA ESTER DE MELO AMARAL","alto":11,"medio":10,"baixo":3,"total":24},{"nome":"LUCAS ALVES PEREIRA PINTO DE MIRANDA","alto":6,"medio":11,"baixo":7,"total":24},{"nome":"ANDRES MARLO RAIMUNDO DE PAIVA","alto":8,"medio":7,"baixo":8,"total":23},{"nome":"FERNANDA SOARES PIMASSONI VARGAS","alto":4,"medio":6,"baixo":12,"total":22},{"nome":"MICHELLE APARECIDA FERNANDES DA SILVA","alto":3,"medio":10,"baixo":9,"total":22},{"nome":"ANA MARIA M FREITAS L DAMASCENO","alto":4,"medio":3,"baixo":14,"total":21},{"nome":"SILMARA TEIXEIRA DOS SANTOS LUIZ","alto":0,"medio":2,"baixo":18,"total":20},{"nome":"RENAN JORGE RAMOS MARTINS","alto":0,"medio":6,"baixo":12,"total":18},{"nome":"RENATA MONICA SILVA AMARAL OLIVEIRA","alto":11,"medio":0,"baixo":7,"total":18},{"nome":"GABRIELLA SOUZA LAMOUNIER CAMPOS","alto":3,"medio":7,"baixo":7,"total":17},{"nome":"ANA PAULA SILVA RODRIGUES","alto":0,"medio":6,"baixo":10,"total":16},{"nome":"MARCOS PAULO FERREIRA","alto":0,"medio":0,"baixo":15,"total":15},{"nome":"MARIANE DE MATOS REIS","alto":4,"medio":2,"baixo":7,"total":13},{"nome":"LUDIMILA FREITAS DE ALVARENGA PALHARES","alto":4,"medio":2,"baixo":7,"total":13},{"nome":"MARCILENE RESENDE MORAIS BESSA","alto":1,"medio":6,"baixo":6,"total":13},{"nome":"KALILI DANIELI BARRA RIBEIRO","alto":3,"medio":5,"baixo":5,"total":13},{"nome":"LEANDRO SIQUEIRA NOVAES","alto":3,"medio":3,"baixo":7,"total":13},{"nome":"JULIANA MARA LIMA","alto":2,"medio":1,"baixo":9,"total":12},{"nome":"ANGELA DO CARMO COELHO","alto":1,"medio":3,"baixo":8,"total":12},{"nome":"MARIA EDUARDA MAGALHAES DE MENEZES","alto":0,"medio":4,"baixo":7,"total":11},{"nome":"HENRIQUE AMARAL FONSECA PIRES","alto":3,"medio":4,"baixo":4,"total":11},{"nome":"MARIANA NOGUEIRA FREITAS SILVEIRA","alto":6,"medio":1,"baixo":3,"total":10},{"nome":"RAYSSA ASSUNCAO GUIMARAES","alto":2,"medio":3,"baixo":5,"total":10},{"nome":"BRUNA LUIZA MAIA","alto":6,"medio":1,"baixo":3,"total":10},{"nome":"DANIEL REIS CORREIA","alto":4,"medio":0,"baixo":5,"total":9},{"nome":"MATEUS CAMPOS SANTA CECILIA","alto":2,"medio":6,"baixo":1,"total":9},{"nome":"ROBERTA NASCIMENTO SCHULTZ","alto":0,"medio":1,"baixo":8,"total":9},{"nome":"DENISE MOREIRA DUTRA","alto":4,"medio":0,"baixo":4,"total":8},{"nome":"WELITON WILLIAN MACHADO","alto":6,"medio":0,"baixo":2,"total":8},{"nome":"GABRIEL JANCIK REY RODRIGUES","alto":4,"medio":1,"baixo":3,"total":8},{"nome":"LETICIA APARECIDA MIGUEL DOS SANTOS","alto":0,"medio":3,"baixo":5,"total":8},{"nome":"ADIR JUNIOR SARDINHA GOMES","alto":5,"medio":1,"baixo":1,"total":7},{"nome":"LUIZA ANDRADE RODRIGUES","alto":1,"medio":2,"baixo":4,"total":7},{"nome":"NAYARA FERREIRA SENA","alto":2,"medio":2,"baixo":3,"total":7},{"nome":"GABRIELA BARBARA VARGAS PAULISTA ROCHA","alto":0,"medio":2,"baixo":5,"total":7},{"nome":"RICARDO EUGENIO COSTA","alto":1,"medio":2,"baixo":4,"total":7},{"nome":"ANA MARIA EUGENIA ALVES","alto":1,"medio":1,"baixo":4,"total":6},{"nome":"EVILLYN LIANDRA ALVES DOS SANTOS LIMA","alto":3,"medio":2,"baixo":1,"total":6},{"nome":"HERICA MARIS MARTINS SILVA","alto":3,"medio":1,"baixo":2,"total":6},{"nome":"LETICIA MOREIRA FARIAS PIMENTEL","alto":0,"medio":3,"baixo":3,"total":6},{"nome":"HENRIQUE REIS RABELO COSTA","alto":5,"medio":1,"baixo":0,"total":6},{"nome":"ANA LUISA TERRA LASMAR","alto":4,"medio":1,"baixo":0,"total":5},{"nome":"APARECIDA GONCALVES DOS S BUENOS AIRES","alto":2,"medio":0,"baixo":3,"total":5},{"nome":"CRISTIANE REIS DOS SANTOS","alto":1,"medio":1,"baixo":3,"total":5},{"nome":"LUIZ FILIPE DE OLIVEIRA BRAGA","alto":3,"medio":2,"baixo":0,"total":5},{"nome":"ERNESTO MACHADO NUNES NETTO","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"GABRIEL PERPETUO SOARES","alto":3,"medio":2,"baixo":0,"total":5},{"nome":"THAYLAN PATRICK FERREIRA SILVA","alto":2,"medio":2,"baixo":1,"total":5},{"nome":"PRISCILA ANTUNES CUNHA","alto":0,"medio":0,"baixo":5,"total":5},{"nome":"FERNANDA MARIA LOPES MORAIS","alto":2,"medio":1,"baixo":2,"total":5},{"nome":"BIANCA TAMARA ALBINO RODRIGUES","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"LEONARDO GOMES ROCHA","alto":3,"medio":0,"baixo":1,"total":4},{"nome":"LILIAN MARIA MIRANDA NEVES","alto":3,"medio":1,"baixo":0,"total":4},{"nome":"ANA LUIZA FERREIRA SILVA","alto":2,"medio":1,"baixo":1,"total":4},{"nome":"BRUNNA MOURTHE PEREZ","alto":1,"medio":1,"baixo":2,"total":4},{"nome":"ANA PAULA DOS SANTOS SILVA","alto":2,"medio":1,"baixo":1,"total":4},{"nome":"ISABELLA BOTELHO FIGUEIREDO MATIAS","alto":1,"medio":2,"baixo":1,"total":4},{"nome":"JACKELINE PAIVA GOMES MELO","alto":0,"medio":1,"baixo":3,"total":4},{"nome":"GABRIELLE BERNARDES DE SOUSA","alto":4,"medio":0,"baixo":0,"total":4},{"nome":"PATRICIA OLIVEIRA GASPAR","alto":1,"medio":2,"baixo":1,"total":4},{"nome":"LUCIANA CRISTINA MARQUES","alto":0,"medio":2,"baixo":2,"total":4},{"nome":"MAYRALINE DE CASTILHO BUZZI","alto":3,"medio":0,"baixo":1,"total":4},{"nome":"VINICIUS NASCIMENTO DE SOUZA","alto":4,"medio":0,"baixo":0,"total":4},{"nome":"LUCAS FERREIRA REZENDE","alto":1,"medio":1,"baixo":1,"total":3},{"nome":"NATACHA DE PAULA BRITO","alto":0,"medio":0,"baixo":3,"total":3},{"nome":"DIOGO DE OLIVEIRA CARDOSO","alto":2,"medio":1,"baixo":0,"total":3},{"nome":"INYENE UDOM","alto":2,"medio":0,"baixo":1,"total":3},{"nome":"TENILLE PEREIRA DE MORAIS","alto":0,"medio":0,"baixo":3,"total":3},{"nome":"CAMILLE CRISTINA MIRANDA","alto":1,"medio":1,"baixo":1,"total":3},{"nome":"BARBARA BRITTO OLIVEIRA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"DAMARES CRISTINA ANDRADE ROQUE SOUSA","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"ADEVANIL SANTOS RODRIGUES","alto":1,"medio":0,"baixo":1,"total":2},{"nome":"CAIO GIORGE ALVES CARDOSO","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"VICTOR FELIPE DE ASSIS","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"VALERIA EFREM NATIVIDADE FERREIRA","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"PATRICIA MACEDO ROCHA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"ROBERTA MELO CABRAL","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"MAYARA CAROLINE DE OLIVEIRA HENRIQUES","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"POLIANE AGUIAR SILVA ANTUNES","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"DIRCEIA NEIVA BRAZ DE MEIRA","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"DIULY ANE FARIA REZENDE","alto":1,"medio":0,"baixo":1,"total":2},{"nome":"DHANIELLE MOREIRA RAMOS","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"FLAVIA VANESSA LARA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"YAN NOGUEIRA BARBOSA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"GISLENE FERRAZ DE OLIVEIRA","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"JULIANA DE ALFENAS AMBROSIO","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"JORDANA WYARA APARECIDA BARBOSA","alto":0,"medio":2,"baixo":0,"total":2},{"nome":"IZABELA CAJUEIRO MACHADO","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"DAMARYS VENCIONECK DE SOUZA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"CRISKELEM REIS MARTINS","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"CARLOS MIGUEL DOS SANTOS FONSECA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"BRUNA FRANCINE VIDIGAL BATISTA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"ANNA LETHICIA DOS SANTOS","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"ALEXANDRA SILVESTRE DE OLIVEIRA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"ANGELA MARIA ROCHA DA HORA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"JASPER COELHO NETO","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"JOAO PAULO DE MIRANDA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"ELAINE APARECIDA FERREIRA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"DANIELLE DE ARAUJO MOREIRA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"GABRIELA DE ASSIS LOTT","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"JOAO PEDRO FEIJO MAIA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOICIELLY FRANCA BISPO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOSEANE MARINHO DA SILVA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JULIANA CORDEIRO DOS SANTOS","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"JULIO CESAR DE ALMEIDA SILVA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"KEREN GOMES LOPES","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"JOANA D ARC COSTA DE OLIVEIRA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"PATRICIA CRISTINA DOS SANTOS","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"MARIA ANGELICA DUARTE ANICIO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"PATRICIA EFIGENIA DE SOUSA OLIVEIRA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"MARIANA DA ROCHA ASSIS PINTO","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"MARIA ELENA GUTIERREZ CASTRO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"RUTE GASPAR DE ARAUJO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"RENATA SARAIVA TIMOTEO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"RAPHAEL ALVES MACEDO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"PRISCILA DE SOUZA PIMENTA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"THAIS DOS SANTOS RIBEIRO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"VALDIRENE ISAIAS GODINHO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"VITTORIA MARIA CAMPOS PEDROSA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"WESLEY BARBOSA SOUZA","alto":0,"medio":1,"baixo":0,"total":1}],
+  unidades:[{"nome":"UBS NITEROI","alto":47,"medio":48,"baixo":200,"total":295},{"nome":"UBS VILA CRISTINA","alto":20,"medio":32,"baixo":227,"total":279},{"nome":"UBS HOMERO GIL","alto":56,"medio":65,"baixo":153,"total":274},{"nome":"UBS PARQUE DO CEDRO CECILIA DE PAULA OLIVEIRA","alto":16,"medio":24,"baixo":173,"total":213},{"nome":"UBS ALCIDES BRAZ","alto":33,"medio":47,"baixo":118,"total":198},{"nome":"UBS CITROLANDIA ANALIA MARQUES DE OLIVEIRA","alto":20,"medio":57,"baixo":83,"total":160},{"nome":"UBS BUENO FRANCO MARIA OLIVEIRA E SILVA","alto":19,"medio":18,"baixo":80,"total":117},{"nome":"UBS ANGOLA ROGERIO GUSTAVO REZENDE","alto":45,"medio":21,"baixo":49,"total":115},{"nome":"UBS AMAZONAS","alto":21,"medio":2,"baixo":86,"total":109},{"nome":"UBS TRINCHEIRA NEUSA MARIA BARBIZAN FERREIRA","alto":25,"medio":20,"baixo":63,"total":108},{"nome":"UBS ALTEROSAS ANTONIO JOSE SALOMAO","alto":25,"medio":32,"baixo":39,"total":96},{"nome":"UBS VIANOPOLIS OSVALDO CRUZ","alto":14,"medio":28,"baixo":47,"total":89},{"nome":"UBS SAO JOAO","alto":15,"medio":21,"baixo":48,"total":84},{"nome":"UBS MARIMBA","alto":17,"medio":19,"baixo":46,"total":82},{"nome":"UBS CIDADE VERDE MARCIO FIRMIANO GALLO","alto":13,"medio":22,"baixo":44,"total":79},{"nome":"UBS PTB SANTA CRUZ","alto":14,"medio":8,"baixo":48,"total":70},{"nome":"UBS PETROVALE EDUARDO ANTONIO ROCHA","alto":26,"medio":19,"baixo":22,"total":67},{"nome":"UBS CRUZEIRO DO SUL","alto":6,"medio":9,"baixo":52,"total":67},{"nome":"UBS COLONIA","alto":9,"medio":13,"baixo":41,"total":63},{"nome":"UBS TERESOPOLIS SONIA AUGUSTA DOS SANTOS SILVA","alto":14,"medio":18,"baixo":27,"total":59},{"nome":"UBS NOSSA SENHORA DE FATIMA","alto":6,"medio":16,"baixo":37,"total":59},{"nome":"UBS PETROPOLIS ROSA CAPUCHE","alto":13,"medio":8,"baixo":34,"total":55},{"nome":"UBS VILA BEMGE CRISTOVINA C G DE SOUZA","alto":10,"medio":12,"baixo":19,"total":41},{"nome":"UBS CACHOEIRA WILSON OLIVEIRA ANTUNES","alto":14,"medio":13,"baixo":9,"total":36},{"nome":"UBS CELSO ALVES PEDROSA","alto":1,"medio":7,"baixo":22,"total":30},{"nome":"UBS UNIVERSAL JOAO NARCIZIO DE BARROS","alto":12,"medio":7,"baixo":10,"total":29},{"nome":"UBS CAMPOS ELISEOS","alto":9,"medio":12,"baixo":7,"total":28},{"nome":"UBS NOVA BADEN VIRGINIA MARIA DE CARVALHO","alto":9,"medio":7,"baixo":8,"total":24},{"nome":"UBS GUANABARA","alto":4,"medio":7,"baixo":10,"total":21},{"nome":"UBS PAULO CAMILO","alto":9,"medio":4,"baixo":6,"total":19},{"nome":"UBS ALVORADA JOAO GREGORIO FERREIRA","alto":11,"medio":3,"baixo":4,"total":18},{"nome":"UBS LARANJEIRAS ANTONIO CAETANO","alto":11,"medio":5,"baixo":1,"total":17},{"nome":"UBS SITIO POCOES TEREZINHA DE JESUS LARA BRAGA","alto":5,"medio":4,"baixo":6,"total":15},{"nome":"UBS SAO LUIZ BETIM","alto":5,"medio":2,"baixo":8,"total":15},{"nome":"UBS DOM BOSCO SEBASTIAO DA SILVA VIANA","alto":8,"medio":2,"baixo":3,"total":13},{"nome":"UBS BANDEIRINHAS ROSA MIGUEL SALOMAO","alto":8,"medio":1,"baixo":3,"total":12},{"nome":"UBS DUQUE DE CAXIAS ELIAS VIEIRA DE SA","alto":5,"medio":1,"baixo":1,"total":7},{"nome":"UBS ICAIVERA","alto":3,"medio":3,"baixo":0,"total":6},{"nome":"UBS VILA RECREIO GENI ROSA DOS SANTOS","alto":2,"medio":1,"baixo":2,"total":5}],
+  faixas:[{"nome":"60-69","alto":111,"medio":232,"baixo":1002},{"nome":"70-79","alto":236,"medio":236,"baixo":565},{"nome":"80-89","alto":182,"medio":125,"baixo":128},{"nome":"90+","alto":60,"medio":23,"baixo":3}],
+  sexos:[{"nome":"FEMININO","alto":419,"medio":415,"baixo":1086,"total":1920},{"nome":"MASCULINO","alto":181,"medio":223,"baixo":750,"total":1154}]
+};
+
+// Histórico mensal: array de snapshots ordenados por data
+// POPULAÇÃO IDOSA POR UBS (Relatório Qualidade - Cuidado da Pessoa Idosa ABR/2026)
+// Fonte: relatorio-visao-competencia.xlsx
+// Coluna: NÚMERO TOTAL DE PESSOAS IDOSAS VINCULADAS À EQUIPE (soma por UBS)
+// Total municipal: 29.028 idosos vinculados
+// ════════════════════════════════════════════════════════════════
+var CVAT_IDOSOS = {
+  "UBS ANGOLA ROGERIO GUSTAVO REZENDE":2167,"UBS BUENO FRANCO MARIA OLIVEIRA E SILVA":1598,
+  "UBS HOMERO GIL":1252,"UBS AMAZONAS":1248,"UBS ALCIDES BRAZ":1197,
+  "UBS SAO LUIZ BETIM":1118,"UBS DOM BOSCO SEBASTIAO DA SILVA VIANA":1039,
+  "UBS UNIVERSAL JOAO NARCIZIO DE BARROS":951,"UBS NITEROI":931,
+  "UBS DUQUE DE CAXIAS ELIAS VIEIRA DE SA":891,"UBS ALTEROSAS ANTONIO JOSE SALOMAO":849,
+  "UBS CRUZEIRO DO SUL":820,"UBS NOSSA SENHORA DE FATIMA":774,"UBS MARIMBA":762,
+  "UBS LARANJEIRAS ANTONIO CAETANO":752,"UBS VILA CRISTINA":661,
+  "UBS PETROVALE EDUARDO ANTONIO ROCHA":646,"UBS PAULO CAMILO":644,
+  "UBS IMBIRUCU ANTONIO SABINO DE SOUZA":642,"UBS GUANABARA":640,
+  "UBS SAO JOAO":620,"UBS CELSO ALVES PEDROSA":608,
+  "UBS TERESOPOLIS SONIA AUGUSTA DOS SANTOS SILVA":580,
+  "UBS VILA BEMGE CRISTOVINA C G DE SOUZA":570,
+  "UBS TRINCHEIRA NEUSA MARIA BARBIZAN FERREIRA":570,
+  "UBS CACHOEIRA WILSON OLIVEIRA ANTUNES":523,
+  "UBS VILA RECREIO GENI ROSA DOS SANTOS":488,
+  "UBS SITIO POCOES TEREZINHA DE JESUS LARA BRAGA":478,
+  "UBS COLONIA":476,"UBS ALVORADA JOAO GREGORIO FERREIRA":467,
+  "UBS NOVA BADEN VIRGINIA MARIA DE CARVALHO":464,
+  "UBS CIDADE VERDE MARCIO FIRMIANO GALLO":446,"UBS PTB SANTA CRUZ":428,
+  "UBS PETROPOLIS ROSA CAPUCHE":417,"UBS CAMPOS ELISEOS":414,
+  "UBS PARQUE DO CEDRO CECILIA DE PAULA OLIVEIRA":400,"UBS ICAIVERA":387,
+  "UBS CAIC CAPELINHA":372,"UBS CITROLANDIA ANALIA MARQUES DE OLIVEIRA":265,
+  "UBS VIANOPOLIS OSVALDO CRUZ":241,"UBS BANDEIRINHAS ROSA MIGUEL SALOMAO":232
+};
+
+// ════════════════════════════════════════════════════════════════
+// SISTEMA DE CICLOS ANUAIS
+// ANOS_ARQUIVO: cada entrada = um ciclo anual completo (arquivado)
+// HISTORY: snapshots mensais do ciclo ATIVO (ano corrente)
+// ANO_ATIVO: ano sendo visualizado/editado
+// ════════════════════════════════════════════════════════════════
+var ANOS_ARQUIVO = {}; // { '2025': {ano, total, alto, medio, baixo, profs:[...], unidades:[...], snapshots:[...]} }
+var HISTORY = [];
+var ANO_ATIVO = '2026';
+
+// Registra snapshot inicial do ciclo 2026
+HISTORY.push({
+  mes:'Jun/2026', dataKey:'2026-06',
+  total:STATE.total, alto:STATE.alto, medio:STATE.medio, baixo:STATE.baixo,
+  nProfs:STATE.nProfs,
+  profNames:STATE.profs.map(function(p){return p.nome;}),
+  profData:STATE.profs.map(function(p){
+    var t=p.total;
+    return{nome:p.nome,total:t,alto:p.alto,medio:p.medio,baixo:p.baixo,
+      pctAlto:t>0?parseFloat((p.alto/t*100).toFixed(1)):0,
+      pctMedio:t>0?parseFloat((p.medio/t*100).toFixed(1)):0,
+      pctBaixo:t>0?parseFloat((p.baixo/t*100).toFixed(1)):0};
+  }),
+  unidData:STATE.unidades.map(function(u){
+    var t=u.total,cad=CVAT_IDOSOS[u.nome]||null;
+    return{nome:u.nome,total:t,alto:u.alto,medio:u.medio,baixo:u.baixo,
+      pctAlto:t>0?parseFloat((u.alto/t*100).toFixed(1)):0,
+      pctMedio:t>0?parseFloat((u.medio/t*100).toFixed(1)):0,
+      pctBaixo:t>0?parseFloat((u.baixo/t*100).toFixed(1)):0,
+      idososCad:cad,cobertura:cad?parseFloat((t/cad*100).toFixed(1)):null};
+  }),
+  unidNames:STATE.unidades.map(function(u){return u.nome;})
+});
+
+var charts={};
+var PROFS_AZ=STATE.profs.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+var selectedProf=null,filteredList=[];
+
+function pct(v,t){return t>0?(v/t*100).toFixed(1)+'%':'0%';}
+function fmt(n){return(n||0).toLocaleString('pt-BR');}
+
+// ════════════════════════════════════════════════════════════════
+// LOGIN DO SISTEMA
+// ════════════════════════════════════════════════════════════════
+var SENHA_SISTEMA = 'MELHORIDADE';
+function confirmarLogin(){
+  var v=document.getElementById('loginSenhaInput').value;
+  if(v===SENHA_SISTEMA){
+    var ls=document.getElementById('loginScreen');
+    ls.style.opacity='0';ls.style.transition='opacity .4s';
+    setTimeout(function(){ls.style.display='none';},400);
+    // NÃO marca _sessionAuth aqui — upload tem senha própria
+  } else {
+    var inp=document.getElementById('loginSenhaInput');
+    inp.style.borderColor='#E24B4A';
+    document.getElementById('loginErro').textContent='Senha incorreta. Tente novamente.';
+    inp.value='';
+    setTimeout(function(){inp.style.borderColor='';},800);
+    inp.focus();
+  }
+}
+// Foca no campo de senha ao carregar
+window.addEventListener('load',function(){
+  var inp=document.getElementById('loginSenhaInput');
+  if(inp)inp.focus();
+});
+
+// ════════════════════════════════════════════════════════════════
+// SISTEMA DE SENHA — uploads (senha separada da entrada no sistema)
+// ════════════════════════════════════════════════════════════════
+// ► SENHA DE UPLOAD — altere conforme necessário
+var SENHA_GESTAO = 'Betim@2026';
+// ◄ ─────────────────────────────────────────────────────────────
+
+var _pendingCallback = null; // guarda a ação a executar após autenticação
+var _sessionAuth = false;    // autenticado nesta sessão (expira ao fechar o navegador)
+
+function pedirSenha(callback){
+  if(_sessionAuth){callback();return;}
+  _pendingCallback = callback;
+  document.getElementById('senhaErro').textContent='';
+  document.getElementById('senhaInput').value='';
+  document.getElementById('senhaInput').classList.remove('error');
+  document.getElementById('senhaModal').style.display='flex';
+  setTimeout(function(){document.getElementById('senhaInput').focus();},80);
+}
+
+function confirmarSenha(){
+  var v=document.getElementById('senhaInput').value;
+  if(v===SENHA_GESTAO){
+    _sessionAuth=true;
+    fecharModal();
+    if(_pendingCallback){var cb=_pendingCallback;_pendingCallback=null;cb();}
+  } else {
+    var inp=document.getElementById('senhaInput');
+    inp.classList.add('error');
+    document.getElementById('senhaErro').textContent='Senha incorreta. Tente novamente.';
+    inp.value='';
+    setTimeout(function(){inp.classList.remove('error');},400);
+    inp.focus();
+  }
+}
+
+function fecharModal(){
+  document.getElementById('senhaModal').style.display='none';
+  // Limpa os inputs de arquivo para que o change event dispare novamente se necessário
+  document.getElementById('fileInput').value='';
+  document.getElementById('fileInputSiaps').value='';
+  _pendingCallback=null;
+}
+
+// ════════════════════════════════════════════════════════════════
+// UPLOAD IVCF-20
+// ════════════════════════════════════════════════════════════════
+document.getElementById('fileInput').addEventListener('change',function(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  pedirSenha(function(){loadFile(file);});
+});
+var zone=document.getElementById('uploadZone');
+zone.addEventListener('dragover',function(e){e.preventDefault();zone.classList.add('drag');});
+zone.addEventListener('dragleave',function(){zone.classList.remove('drag');});
+zone.addEventListener('drop',function(e){
+  e.preventDefault();zone.classList.remove('drag');
+  var file=e.dataTransfer.files[0];
+  if(!file)return;
+  pedirSenha(function(){loadFile(file);});
+});
+
+function loadFile(file){
+  document.getElementById('fileInfo').textContent='⏳ Processando...';
+  var r=new FileReader();
+  r.onload=function(e){
+    try{parseFile(e.target.result,file.name);document.getElementById('fileInfo').textContent='✅ '+file.name;}
+    catch(err){document.getElementById('fileInfo').textContent='❌ Erro';alert('Erro: '+err.message);}
+  };
+  r.readAsArrayBuffer(file);
+}
+
+// ════════════════════════════════════════════════════════════════
+// UPLOAD SIAPS — Nº de Idosos Vinculados por Equipe
+// Fonte: Relatório Qualidade - Cuidado da Pessoa Idosa (SIAPS)
+// Coluna esperada: NÚMERO TOTAL DE PESSOAS IDOSAS VINCULADAS À EQUIPE
+// ════════════════════════════════════════════════════════════════
+document.getElementById('fileInputSiaps').addEventListener('change',function(e){
+  var file=e.target.files[0];
+  if(!file)return;
+  pedirSenha(function(){loadFileSiaps(file);});
+});
+var zoneSiaps=document.getElementById('uploadZoneSiaps');
+zoneSiaps.addEventListener('dragover',function(e){e.preventDefault();zoneSiaps.classList.add('drag');});
+zoneSiaps.addEventListener('dragleave',function(){zoneSiaps.classList.remove('drag');});
+zoneSiaps.addEventListener('drop',function(e){
+  e.preventDefault();zoneSiaps.classList.remove('drag');
+  var file=e.dataTransfer.files[0];
+  if(!file)return;
+  pedirSenha(function(){loadFileSiaps(file);});
+});
+
+function loadFileSiaps(file){
+  document.getElementById('fileInfoSiaps').textContent='⏳ Lendo...';
+  var r=new FileReader();
+  r.onload=function(e){
+    try{
+      parseSiaps(e.target.result, file.name);
+      document.getElementById('fileInfoSiaps').textContent='✅ '+file.name;
+    } catch(err){
+      document.getElementById('fileInfoSiaps').textContent='❌ Erro';
+      alert('Erro ao ler arquivo SIAPS: '+err.message);
+    }
+  };
+  r.readAsArrayBuffer(file);
+}
+
+function parseSiaps(buffer, fileName){
+  var wb = XLSX.read(buffer, {type:'array'});
+  var ws = wb.Sheets[wb.SheetNames[0]];
+  var raw = XLSX.utils.sheet_to_json(ws, {header:1, defval:''});
+
+  // Encontra linha de cabeçalho (contém "ESTABELECIMENTO")
+  var headerRow = -1;
+  for(var i=0; i<raw.length; i++){
+    var rowStr = raw[i].join('|').toUpperCase();
+    if(rowStr.indexOf('ESTABELECIMENTO')>=0 && rowStr.indexOf('CNES')>=0){
+      headerRow = i; break;
+    }
+  }
+  if(headerRow<0) throw new Error('Cabeçalho não encontrado. Verifique se é o arquivo correto do Relatório Qualidade - Cuidado da Pessoa Idosa.');
+
+  var headers = raw[headerRow].map(function(h){return String(h).trim().toUpperCase();});
+
+  // Identifica colunas necessárias
+  var iEstab = headers.findIndex(function(h){return h.indexOf('ESTABELECIMENTO')>=0;});
+  var iIdosos = headers.findIndex(function(h){return h.indexOf('NÚMERO TOTAL DE PESSOAS IDOSAS')>=0 || h.indexOf('NUMERO TOTAL DE PESSOAS IDOSAS')>=0;});
+
+  if(iEstab<0) throw new Error('Coluna ESTABELECIMENTO não encontrada.');
+  if(iIdosos<0) throw new Error('Coluna "NÚMERO TOTAL DE PESSOAS IDOSAS VINCULADAS À EQUIPE" não encontrada.\nVerifique se o arquivo é o Relatório Qualidade com indicador "Cuidado da pessoa idosa".');
+
+  // Agrega por estabelecimento (soma das equipes)
+  var mapa={};
+  for(var j=headerRow+1; j<raw.length; j++){
+    var row=raw[j];
+    var estab=String(row[iEstab]||'').trim().toUpperCase();
+    var qtd=parseInt(row[iIdosos])||0;
+    if(!estab || estab==='ESTABELECIMENTO' || estab==='TOTAL' || estab==='' || estab==='NAN') continue;
+    if(!mapa[estab]) mapa[estab]=0;
+    mapa[estab]+=qtd;
+  }
+
+  var nUbs=Object.keys(mapa).length;
+  if(nUbs===0) throw new Error('Nenhum dado encontrado. Verifique o arquivo.');
+
+  // Atualiza CVAT_IDOSOS globalmente
+  Object.keys(mapa).forEach(function(k){ CVAT_IDOSOS[k]=mapa[k]; });
+
+  // Calcula totais
+  var totalIdosos=Object.values?Object.values(mapa).reduce(function(s,v){return s+v;},0):
+    Object.keys(mapa).reduce(function(s,k){return s+mapa[k];},0);
+
+  // Extrai competência do arquivo (ex: "ABR/26")
+  var competencia='';
+  for(var i=0;i<Math.min(headerRow,20);i++){
+    var txt=raw[i].join(' ');
+    var m=txt.match(/competência[^:]*:\s*([A-Z]{3}\/\d{2,4})/i);
+    if(m){competencia=' · Competência: '+m[1];break;}
+  }
+
+  // Atualiza badge de referência
+  var ref=document.getElementById('siapsRef');
+  if(ref) ref.innerHTML='👴 Idosos SIAPS'+competencia+' · <b>'+fmt(totalIdosos)+'</b> vinculados em '+nUbs+' UBS';
+
+  // Sincroniza o ano ativo com novos denominadores
+  sincronizarAnoAtivo();
+
+  // Atualiza aba de cobertura se estiver ativa
+  if(document.getElementById('panel-cobertura').classList.contains('active')) buildCobertura();
+  if(document.getElementById('panel-anual').classList.contains('active')) buildAnual();
+
+  // Notifica
+  mostrarToast('✅ SIAPS atualizado — '+nUbs+' UBS · '+fmt(totalIdosos)+' idosos'+competencia, '#3b6cb5');
+}
+
+function mostrarToast(msg, cor){
+  var t=document.createElement('div');
+  t.style.cssText='position:fixed;bottom:24px;right:24px;background:'+(cor||'var(--verde)')+';color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:600;box-shadow:0 4px 16px rgba(0,0,0,0.2);z-index:9999;max-width:380px;line-height:1.4';
+  t.textContent=msg;
+  document.body.appendChild(t);
+  setTimeout(function(){if(t.parentNode)document.body.removeChild(t);},4000);
+}
+
+function parseFile(buffer,fileName){
+  var text=new TextDecoder('utf-8').decode(new Uint8Array(buffer));
+  var rows=[];
+  if(text.trim().startsWith('<')||text.includes('<table')){
+    var doc=(new DOMParser()).parseFromString(text,'text/html');
+    var tables=doc.querySelectorAll('table'),mainTable=null;
+    tables.forEach(function(t){if(t.rows.length>50)mainTable=t;});
+    if(!mainTable)mainTable=tables[tables.length-1];
+    if(!mainTable)throw new Error('Tabela não encontrada');
+    var headers=[];
+    Array.from(mainTable.rows[0].cells).forEach(function(c){headers.push(c.textContent.trim());});
+    for(var i=1;i<mainTable.rows.length;i++){
+      var row={};Array.from(mainTable.rows[i].cells).forEach(function(c,j){row[headers[j]]=c.textContent.trim();});
+      if(row['NOME']||row['CADSUS'])rows.push(row);
+    }
+  } else {
+    var wb=XLSX.read(buffer,{type:'array'});
+    rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''});
+  }
+  processRows(rows,fileName);
+}
+
+function gc(row,names){for(var i=0;i<names.length;i++){if(row[names[i]]!==undefined&&row[names[i]]!=='')return String(row[names[i]]).trim();}return '';}
+
+function processRows(rows,fileName){
+  STATE.prev={total:STATE.total,alto:STATE.alto,medio:STATE.medio,baixo:STATE.baixo,nProfs:STATE.nProfs};
+  var profMap={},unidMap={},faixaMap={},sexoMap={};
+  var total=0,alto=0,medio=0,baixo=0;
+  rows.forEach(function(r){
+    var estrat=gc(r,['ESTRATIFICACAO','Estratificação','estratificacao']);
+    if(!estrat)return;total++;
+    var ea=estrat==='Alto Risco'?'alto':estrat==='Médio Risco'?'medio':'baixo';
+    if(ea==='alto')alto++;else if(ea==='medio')medio++;else baixo++;
+    var prof=gc(r,['NOME_PROFISSIONAL','Nome Profissional','nome_profissional']);
+    if(prof){if(!profMap[prof])profMap[prof]={alto:0,medio:0,baixo:0};profMap[prof][ea]++;}
+    var unid=gc(r,['UNIDADE','Unidade','unidade']);
+    if(unid){if(!unidMap[unid])unidMap[unid]={alto:0,medio:0,baixo:0};unidMap[unid][ea]++;}
+    var age=parseInt(gc(r,['IDADE','Idade','idade']))||0;
+    var fx=age>=90?'90+':age>=80?'80-89':age>=70?'70-79':'60-69';
+    if(!faixaMap[fx])faixaMap[fx]={alto:0,medio:0,baixo:0};faixaMap[fx][ea]++;
+    var sx=gc(r,['SEXO','Sexo','sexo']).toUpperCase();
+    if(sx){if(!sexoMap[sx])sexoMap[sx]={alto:0,medio:0,baixo:0};sexoMap[sx][ea]++;}
+  });
+  function toArr(map){return Object.keys(map).map(function(k){var v=map[k];var t2=v.alto+v.medio+v.baixo;return{nome:k,alto:v.alto,medio:v.medio,baixo:v.baixo,total:t2};}).sort(function(a,b){return b.total-a.total;});}
+  STATE.total=total;STATE.alto=alto;STATE.medio=medio;STATE.baixo=baixo;
+  STATE.profs=toArr(profMap);STATE.unidades=toArr(unidMap);
+  STATE.faixas=['60-69','70-79','80-89','90+'].map(function(f){var v=faixaMap[f]||{alto:0,medio:0,baixo:0};return{nome:f,alto:v.alto,medio:v.medio,baixo:v.baixo};});
+  STATE.sexos=toArr(sexoMap).map(function(s){var t2=s.alto+s.medio+s.baixo;return Object.assign({},s,{total:t2});});
+  STATE.nProfs=STATE.profs.length;STATE.nUnidades=STATE.unidades.length;STATE.fileName=fileName;
+  var dm=fileName.match(/(\d{4}-\d{2}-\d{2})/);
+  var dateKey=dm?dm[1]:'';
+  var anoArquivo=dateKey?dateKey.slice(0,4):String(new Date().getFullYear());
+  var mesLabel=dateKey?mesFromKey(dateKey):new Date().toLocaleDateString('pt-BR',{month:'short',year:'numeric'});
+  STATE.fileDate=dateKey?dateKey.split('-').reverse().join('/'):new Date().toLocaleDateString('pt-BR');
+
+  // ── DETECÇÃO DE MUDANÇA DE ANO ──────────────────────────────────
+  if(anoArquivo !== ANO_ATIVO){
+    arquivarAno(ANO_ATIVO);
+    ANO_ATIVO=anoArquivo;
+    HISTORY=[];
+    mostrarAlertaNovoAno(ANO_ATIVO);
+  }
+
+  // ── SNAPSHOT MENSAL COMPLETO ─────────────────────────────────────
+  var dataKey=dateKey?dateKey.slice(0,7):(anoArquivo+'-'+(new Date().getMonth()+1).toString().padStart(2,'0'));
+  var snap={
+    mes:mesLabel, dataKey:dataKey,
+    total:total, alto:alto, medio:medio, baixo:baixo,
+    nProfs:STATE.nProfs,
+    // Dados completos de profissionais (vulnerabilidade + percentuais)
+    profData:STATE.profs.map(function(p){
+      var t=p.total;
+      return{
+        nome:p.nome, total:t,
+        alto:p.alto, medio:p.medio, baixo:p.baixo,
+        pctAlto:t>0?parseFloat((p.alto/t*100).toFixed(1)):0,
+        pctMedio:t>0?parseFloat((p.medio/t*100).toFixed(1)):0,
+        pctBaixo:t>0?parseFloat((p.baixo/t*100).toFixed(1)):0
+      };
+    }),
+    profNames:STATE.profs.map(function(p){return p.nome;}),
+    // Dados completos de unidades (vulnerabilidade + percentuais + cobertura CVAT)
+    unidData:STATE.unidades.map(function(u){
+      var t=u.total;
+      var cad=CVAT_IDOSOS[u.nome]||null;
+      return{
+        nome:u.nome, total:t,
+        alto:u.alto, medio:u.medio, baixo:u.baixo,
+        pctAlto:t>0?parseFloat((u.alto/t*100).toFixed(1)):0,
+        pctMedio:t>0?parseFloat((u.medio/t*100).toFixed(1)):0,
+        pctBaixo:t>0?parseFloat((u.baixo/t*100).toFixed(1)):0,
+        idososCad:cad,
+        cobertura:cad?parseFloat((t/cad*100).toFixed(1)):null
+      };
+    }),
+    unidNames:STATE.unidades.map(function(u){return u.nome;})
+  };
+  var existing=HISTORY.findIndex(function(h){return h.dataKey===dataKey;});
+  if(existing>=0)HISTORY[existing]=snap;
+  else HISTORY.push(snap);
+  HISTORY.sort(function(a,b){return a.dataKey.localeCompare(b.dataKey);});
+  sincronizarAnoAtivo();
+  atualizarSeletorAno();
+
+  PROFS_AZ=STATE.profs.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  refreshUI();
+  if(document.getElementById('panel-evol').classList.contains('active'))buildEvol();
+  if(document.getElementById('panel-anual').classList.contains('active'))buildAnual();
+}
+
+// ── GESTÃO DE ANOS ──────────────────────────────────────────────
+function buildAnoSnapshot(ano){
+  // Constrói o objeto completo do ciclo com todos os dados de vulnerabilidade
+  var unidsComCobertura=STATE.unidades.map(function(u){
+    var t=u.total;
+    var cad=CVAT_IDOSOS[u.nome]||null;
+    return{
+      nome:u.nome,total:t,alto:u.alto,medio:u.medio,baixo:u.baixo,
+      pctAlto:t>0?parseFloat((u.alto/t*100).toFixed(1)):0,
+      pctMedio:t>0?parseFloat((u.medio/t*100).toFixed(1)):0,
+      pctBaixo:t>0?parseFloat((u.baixo/t*100).toFixed(1)):0,
+      idososCad:cad,
+      cobertura:cad?parseFloat((t/cad*100).toFixed(1)):null
+    };
+  });
+  var profsCompletos=STATE.profs.map(function(p){
+    var t=p.total;
+    return{
+      nome:p.nome,total:t,alto:p.alto,medio:p.medio,baixo:p.baixo,
+      pctAlto:t>0?parseFloat((p.alto/t*100).toFixed(1)):0,
+      pctMedio:t>0?parseFloat((p.medio/t*100).toFixed(1)):0,
+      pctBaixo:t>0?parseFloat((p.baixo/t*100).toFixed(1)):0
+    };
+  });
+  // Cobertura geral municipal
+  var totalCad=Object.values?Object.values(CVAT_IDOSOS).reduce(function(s,v){return s+v;},0):29028;
+  return{
+    ano:ano,
+    total:STATE.total,alto:STATE.alto,medio:STATE.medio,baixo:STATE.baixo,
+    nProfs:STATE.nProfs,
+    coberturaGeral:totalCad?parseFloat((STATE.total/totalCad*100).toFixed(1)):null,
+    totalIdososCad:totalCad,
+    profs:profsCompletos,
+    unidades:unidsComCobertura,
+    faixas:STATE.faixas.slice(),
+    sexos:STATE.sexos.slice(),
+    snapshots:HISTORY.slice()
+  };
+}
+function arquivarAno(ano){
+  ANOS_ARQUIVO[ano]=buildAnoSnapshot(ano);
+}
+function sincronizarAnoAtivo(){
+  ANOS_ARQUIVO[ANO_ATIVO]=buildAnoSnapshot(ANO_ATIVO);
+}
+function atualizarSeletorAno(){
+  var sel=document.getElementById('anoSelector');
+  var anos=Object.keys(ANOS_ARQUIVO).sort();
+  sel.innerHTML='';
+  anos.forEach(function(a){
+    var opt=document.createElement('option');
+    opt.value=a;opt.textContent=a+(a===ANO_ATIVO?' ✦ ativo':'');
+    sel.appendChild(opt);
+  });
+  sel.value=ANO_ATIVO;
+  document.getElementById('anoSelectorWrap').style.display=anos.length>1?'flex':'none';
+  document.getElementById('anoBadge').textContent='Ciclo '+ANO_ATIVO;
+  document.getElementById('anoBadge').style.background=anos.length>1&&ANO_ATIVO!==String(new Date().getFullYear())?'#888':'var(--verde)';
+}
+function trocarAno(){
+  var sel=document.getElementById('anoSelector');
+  var anoSel=sel.value;
+  var dados=ANOS_ARQUIVO[anoSel];
+  if(!dados)return;
+  STATE.total=dados.total;STATE.alto=dados.alto;STATE.medio=dados.medio;STATE.baixo=dados.baixo;
+  STATE.profs=dados.profs;STATE.unidades=dados.unidades;
+  STATE.faixas=dados.faixas;STATE.sexos=dados.sexos;
+  STATE.nProfs=dados.nProfs;STATE.nUnidades=dados.unidades.length;
+  STATE.fileDate='Ciclo '+anoSel;STATE.prev=null;
+  HISTORY=dados.snapshots;
+  ANO_ATIVO=anoSel;
+  PROFS_AZ=STATE.profs.slice().sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  document.getElementById('anoBadge').textContent='Ciclo '+anoSel;
+  document.getElementById('anoBadge').style.background=anoSel===String(new Date().getFullYear())?'var(--verde)':'#888';
+  refreshUI();buildEvol();
+  selectedProf=null;
+  document.getElementById('profSearch').value='';
+  document.getElementById('profDetail').innerHTML='<div class="no-sel">Selecione um profissional para ver os detalhes</div>';
+}
+function mostrarAlertaNovoAno(ano){
+  var d=document.createElement('div');
+  d.style.cssText='position:fixed;top:80px;left:50%;transform:translateX(-50%);background:#fff;border:2px solid var(--verde);border-radius:12px;padding:20px 28px;box-shadow:0 8px 32px rgba(0,0,0,0.18);z-index:9999;text-align:center;max-width:420px';
+  d.innerHTML='<div style="font-size:28px;margin-bottom:8px">🎉</div><div style="font-weight:700;font-size:15px;color:#111;margin-bottom:6px">Novo ciclo anual iniciado: '+ano+'</div><div style="font-size:12px;color:var(--sub);line-height:1.6">A contagem por profissional e por equipe foi <b>reiniciada do zero</b>.<br>Os dados de '+String(parseInt(ano)-1)+' foram arquivados e podem ser consultados na aba <b>📅 Arquivo anual</b>.</div>';
+  var btn=document.createElement('button');
+  btn.textContent='Entendido';
+  btn.style.cssText='margin-top:14px;padding:7px 22px;background:var(--verde);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600';
+  btn.onclick=function(){document.body.removeChild(d);};
+  d.appendChild(btn);
+  document.body.appendChild(d);
+  setTimeout(function(){if(d.parentNode)document.body.removeChild(d);},10000);
+}
+
+function mesFromKey(dk){
+  var partes=dk.split('-');
+  var meses=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  return meses[parseInt(partes[1])-1]+'/'+partes[0];
+}
+
+// ════════════════════════════════════════════════════════════════
+// UI PRINCIPAL
+// ════════════════════════════════════════════════════════════════
+function refreshUI(){
+  var t=STATE.total,a=STATE.alto,m=STATE.medio,b=STATE.baixo,p=STATE.prev;
+  document.getElementById('sTotal').textContent=fmt(t);
+  document.getElementById('sAlto').textContent=fmt(a);
+  document.getElementById('sAltoP').textContent=pct(a,t)+' dos avaliados';
+  document.getElementById('sMedio').textContent=fmt(m);
+  document.getElementById('sMedioP').textContent=pct(m,t)+' dos avaliados';
+  document.getElementById('sBaixo').textContent=fmt(b);
+  document.getElementById('sBaixoP').textContent=pct(b,t)+' dos avaliados';
+  if(p){setD('sDeltaTotal',t,p.total);setD('sDeltaAlto',a,p.alto);setD('sDeltaMedio',m,p.medio);setD('sDeltaBaixo',b,p.baixo);}
+  document.getElementById('dataInfoText').innerHTML='Dados: <b>'+(STATE.fileDate||STATE.fileName)+'</b> &nbsp;|&nbsp; Profissionais: <b>'+STATE.nProfs+'</b> &nbsp;|&nbsp; Unidades: <b>'+STATE.nUnidades+'</b>';
+  updTopOpt('pTop',STATE.nProfs,'Todos');updTopOpt('uTop',STATE.nUnidades,'Todas');
+  buildProf();buildUnit();buildFaixa();buildSexo();
+  selectedProf=null;
+  document.getElementById('profSearch').value='';
+  document.getElementById('profDetail').innerHTML='<div class="no-sel">Selecione um profissional para ver os detalhes</div>';
+}
+function setD(id,now,old){var d=now-old;document.getElementById(id).innerHTML=d===0?'':(d>0?'+':'')+d+' vs. carga anterior';}
+function updTopOpt(selId,n,lbl){
+  var sel=document.getElementById(selId);
+  for(var i=sel.options.length-1;i>=0;i--){if(sel.options[i].value==='9999')sel.remove(i);}
+  var o=document.createElement('option');o.value='9999';o.textContent=lbl+' ('+n+')';sel.appendChild(o);
+}
+
+// ════════════════════════════════════════════════════════════════
+// GRÁFICOS PRINCIPAIS
+// ════════════════════════════════════════════════════════════════
+function makeTip(ref){return{mode:'index',intersect:false,callbacks:{
+  title:function(it){return ref[it[0].dataIndex].nome;},
+  label:function(it){var x=ref[it.dataIndex],t=x.total;var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=x[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+'  ('+pct(v,t)+')';},
+  footer:function(it){return 'Total: '+ref[it[0].dataIndex].total;}
+}};}
+
+function measureText(text, fontSize) {
+  // Usa um canvas offscreen para medir a largura real do texto
+  if (!measureText._ctx) {
+    measureText._ctx = document.createElement('canvas').getContext('2d');
+  }
+  measureText._ctx.font = fontSize + 'px "Segoe UI", system-ui, sans-serif';
+  return measureText._ctx.measureText(text).width;
+}
+
+function barH(id,wrapId,raw,sk,top,lbPxFallback){
+  var d=raw.slice();
+  if(sk==='total')d.sort(function(a,b){return b.total-a.total;});
+  else if(sk==='alto')d.sort(function(a,b){return b.alto-a.alto;});
+  else if(sk==='medio')d.sort(function(a,b){return b.medio-a.medio;});
+  else if(sk==='baixo')d.sort(function(a,b){return b.baixo-a.baixo;});
+  else d.sort(function(a,b){return a.nome.localeCompare(b.nome);});
+  d=d.slice(0,Math.min(top,d.length));
+  var labels=d.map(function(x){return x.nome+' ('+x.total+')';});
+
+  // Mede o label mais longo
+  var maxLabelW=0;
+  labels.forEach(function(lbl){var w=measureText(lbl,10);if(w>maxLabelW)maxLabelW=w;});
+  var lbPx=Math.ceil(maxLabelW)+20;
+  lbPx=Math.max(lbPx,160);
+  lbPx=Math.min(lbPx,420);
+
+  var rowH=26;
+  var cssH=d.length*rowH+50;
+  var wrap=document.getElementById(wrapId);
+  var cssW=wrap.clientWidth||document.querySelector('main').clientWidth-32||800;
+
+  // Destroi chart anterior
+  if(charts[id])charts[id].destroy();
+
+  // Reconstrói wrapper
+  wrap.innerHTML='';
+
+  // Canvas com apenas dimensões CSS — Chart.js 4.x cuida do DPR internamente
+  var nc=document.createElement('canvas');
+  nc.id=id;
+  nc.style.display='block';
+  nc.style.width=cssW+'px';
+  nc.style.height=cssH+'px';
+  // NÃO definir nc.width / nc.height nem ctx.scale() — Chart.js faz isso sozinho
+  wrap.appendChild(nc);
+
+  charts[id]=new Chart(nc,{
+    type:'bar',
+    data:{labels:labels,datasets:[
+      {label:'Alto risco', data:d.map(function(x){return x.alto;}), backgroundColor:'#E24B4A',stack:'s'},
+      {label:'Médio risco',data:d.map(function(x){return x.medio;}),backgroundColor:'#EF9F27',stack:'s'},
+      {label:'Baixo risco',data:d.map(function(x){return x.baixo;}),backgroundColor:'#1D9E75',stack:'s'}
+    ]},
+    options:{
+      indexAxis:'y',
+      responsive:false,
+      animation:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{
+          mode:'nearest',
+          intersect:false,
+          axis:'y',
+          callbacks:{
+            title:function(it){return d[it[0].dataIndex].nome;},
+            label:function(it){
+              var x=d[it.dataIndex],t=x.total;
+              var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];
+              var v=x[K[it.datasetIndex]];
+              return '  '+L[it.datasetIndex]+': '+v+'  ('+pct(v,t)+')';
+            },
+            footer:function(it){return 'Total: '+d[it[0].dataIndex].total;}
+          }
+        }
+      },
+      scales:{
+        x:{stacked:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#888'}},
+        y:{stacked:true,ticks:{font:{size:10},color:'#333',autoSkip:false},
+           afterFit:function(ax){ax.width=lbPx;}}
+      }
+    }
+  });
+}
+function buildProf(){if(!STATE.profs.length)return;barH('cP','wP',STATE.profs,document.getElementById('pSort').value,+document.getElementById('pTop').value,220);}
+function buildUnit(){if(!STATE.unidades.length)return;barH('cU','wU',STATE.unidades,document.getElementById('uSort').value,+document.getElementById('uTop').value,340);}
+function getW(){return document.querySelector('main').clientWidth-32||800;}
+function buildFaixa(){
+  if(!STATE.faixas.length)return;
+  if(charts.cF)charts.cF.destroy();
+  var w=getW();
+  var old=document.getElementById('cF'),nc=document.createElement('canvas');
+  nc.id='cF';nc.width=w;nc.height=300;nc.style.display='block';old.parentNode.replaceChild(nc,old);
+  var F=STATE.faixas;
+  charts.cF=new Chart(nc,{type:'bar',data:{labels:F.map(function(f){return f.nome+' anos';}),datasets:[
+    {label:'Alto risco',data:F.map(function(f){return f.alto;}),backgroundColor:'#E24B4A'},
+    {label:'Médio risco',data:F.map(function(f){return f.medio;}),backgroundColor:'#EF9F27'},
+    {label:'Baixo risco',data:F.map(function(f){return f.baixo;}),backgroundColor:'#1D9E75'}
+  ]},options:{responsive:false,animation:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{
+    title:function(it){return F[it[0].dataIndex].nome+' anos';},
+    label:function(it){var f=F[it.dataIndex],t=f.alto+f.medio+f.baixo;var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=f[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+'  ('+pct(v,t)+')';},
+    footer:function(it){var f=F[it[0].dataIndex];return 'Total: '+(f.alto+f.medio+f.baixo);}
+  }}},scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,0.05)'}}}
+  }});
+}
+function makePie(id,d){
+  if(charts[id])charts[id].destroy();
+  var t=d.alto+d.medio+d.baixo;
+  var old=document.getElementById(id);
+  var w=old.parentElement.clientWidth||Math.floor(getW()/2)-20;
+  var nc=document.createElement('canvas');nc.id=id;nc.width=w;nc.height=220;nc.style.display='block';
+  old.parentNode.replaceChild(nc,old);
+  charts[id]=new Chart(nc,{type:'doughnut',data:{labels:['Alto risco','Médio risco','Baixo risco'],datasets:[{data:[d.alto,d.medio,d.baixo],backgroundColor:['#E24B4A','#EF9F27','#1D9E75'],borderWidth:2,borderColor:'transparent'}]},
+    options:{responsive:false,animation:false,cutout:'60%',plugins:{legend:{display:false},tooltip:{callbacks:{label:function(ctx){var v=ctx.parsed;return ' '+ctx.label+': '+v+' ('+pct(v,t)+')';}}}}}});
+}
+function buildSexo(){
+  if(!STATE.sexos.length)return;
+  var fem=STATE.sexos.find(function(s){return s.nome.indexOf('FEMIN')>=0;})||{alto:0,medio:0,baixo:0,total:0};
+  var mas=STATE.sexos.find(function(s){return s.nome.indexOf('MASCU')>=0;})||{alto:0,medio:0,baixo:0,total:0};
+  document.getElementById('sexoLabelF').textContent='Feminino — '+fmt(fem.total);
+  document.getElementById('sexoLabelM').textContent='Masculino — '+fmt(mas.total);
+  makePie('cSF',fem);makePie('cSM',mas);
+  if(charts.cSB)charts.cSB.destroy();
+  var old=document.getElementById('cSB'),w=old.parentElement.clientWidth||getW();
+  var nc=document.createElement('canvas');nc.id='cSB';nc.width=w;nc.height=240;nc.style.display='block';old.parentNode.replaceChild(nc,old);
+  charts.cSB=new Chart(nc,{type:'bar',data:{labels:['Feminino','Masculino'],datasets:[
+    {label:'Alto risco',data:[fem.alto,mas.alto],backgroundColor:'#E24B4A'},
+    {label:'Médio risco',data:[fem.medio,mas.medio],backgroundColor:'#EF9F27'},
+    {label:'Baixo risco',data:[fem.baixo,mas.baixo],backgroundColor:'#1D9E75'}
+  ]},options:{responsive:false,animation:false,plugins:{legend:{display:false},tooltip:{mode:'index',intersect:false,callbacks:{
+    title:function(it){return it[0].dataIndex===0?'Feminino':'Masculino';},
+    label:function(it){var d=[fem,mas][it.dataIndex],t=d.alto+d.medio+d.baixo;var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=d[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+'  ('+pct(v,t)+')';},
+    footer:function(it){var d=[fem,mas][it.dataIndex];return 'Total: '+(d.alto+d.medio+d.baixo);}
+  }}},scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,0.05)'}}}
+  }});
+}
+
+// ════════════════════════════════════════════════════════════════
+// DETALHE POR PROFISSIONAL
+// ════════════════════════════════════════════════════════════════
+function filterProfs(){
+  var q=document.getElementById('profSearch').value.toUpperCase().trim();
+  filteredList=q?PROFS_AZ.filter(function(p){return p.nome.indexOf(q)>=0;}):PROFS_AZ.slice();
+  renderDD();openDD();
+}
+function renderDD(){
+  var dd=document.getElementById('profDropdown');dd.innerHTML='';
+  var list=filteredList.length?filteredList:PROFS_AZ;
+  list.slice(0,40).forEach(function(p){
+    var el=document.createElement('div');el.className='dropdown-item';
+    if(selectedProf&&selectedProf.nome===p.nome)el.classList.add('selected');
+    el.innerHTML=p.nome+'<span class="item-count">'+p.total+' avaliados</span>';
+    el.onclick=function(){selProf(p);};dd.appendChild(el);
+  });
+  if(list.length>40){var el=document.createElement('div');el.className='dropdown-item';el.style.color='#aaa';el.textContent='... e mais '+(list.length-40)+' — continue digitando';dd.appendChild(el);}
+}
+function openDD(){renderDD();document.getElementById('profDropdown').classList.add('open');}
+function selProf(p){
+  selectedProf=p;document.getElementById('profSearch').value=p.nome;
+  document.getElementById('profDropdown').classList.remove('open');showProfDetail(p);
+}
+function showProfDetail(p){
+  var t=p.total;
+  var rT=STATE.profs.slice().sort(function(a,b){return b.total-a.total;}).findIndex(function(x){return x.nome===p.nome;})+1;
+  var rA=STATE.profs.slice().sort(function(a,b){return b.alto-a.alto;}).findIndex(function(x){return x.nome===p.nome;})+1;
+  // Histórico deste profissional
+  var histLine='';
+  if(HISTORY.length>1){
+    histLine='<div style="margin:12px 0 4px;font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.3px">Evolução do profissional por período</div>';
+    histLine+='<div style="overflow-x:auto"><table class="evol-table"><thead><tr><th>Período</th><th class="num">Total</th><th class="delta-cell">Δ</th></tr></thead><tbody>';
+    var prevTot=null;
+    HISTORY.forEach(function(h){
+      var pd=h.profData.find(function(x){return x.nome===p.nome;});
+      var tot=pd?pd.total:0;
+      var dCell=prevTot===null?'<span style="color:var(--sub)">—</span>':deltaCell(tot,prevTot);
+      var row=pd?'':'<span style="color:#ccc">sem registro</span>';
+      histLine+='<tr><td>'+h.mes+'</td><td class="num">'+(pd?tot:0)+'</td><td class="delta-cell">'+dCell+'</td></tr>';
+      prevTot=tot;
+    });
+    histLine+='</tbody></table></div>';
+  }
+  var html='<div class="prof-banner">'+p.nome+'</div>';
+  html+='<div class="detail-cards"><div class="detail-card"><div class="dc-lbl">Total avaliados</div><div class="dc-val n">'+t+'</div><div class="dc-sub">Ranking: '+rT+'º / '+STATE.nProfs+'</div></div>';
+  html+='<div class="detail-card"><div class="dc-lbl">Alto risco</div><div class="dc-val r">'+p.alto+'</div><div class="dc-sub">'+pct(p.alto,t)+'</div></div>';
+  html+='<div class="detail-card"><div class="dc-lbl">Médio risco</div><div class="dc-val a">'+p.medio+'</div><div class="dc-sub">'+pct(p.medio,t)+'</div></div></div>';
+  html+='<div class="detail-cards" style="grid-template-columns:1fr 1fr"><div class="detail-card"><div class="dc-lbl">Baixo risco</div><div class="dc-val g">'+p.baixo+'</div><div class="dc-sub">'+pct(p.baixo,t)+'</div></div>';
+  html+='<div class="detail-card"><div class="dc-lbl">Ranking alto risco</div><div class="dc-val n">'+rA+'º</div><div class="dc-sub">de '+STATE.nProfs+'</div></div></div>';
+  html+='<div class="detail-charts"><div class="dchart-box"><p>Distribuição individual</p><div style="height:200px"><canvas id="cDetPie" style="display:block"></canvas></div></div>';
+  html+='<div class="dchart-box"><p>vs. média municipal</p><div style="height:200px"><canvas id="cDetBar" style="display:block"></canvas></div></div></div>';
+  html+=histLine;
+  document.getElementById('profDetail').innerHTML=html;
+  setTimeout(function(){
+    var cPie = document.getElementById('cDetPie');
+    if (cPie) {
+      var wp = cPie.parentElement.clientWidth || 200;
+      cPie.width = wp; cPie.height = 200;
+      if (charts.cDetPie) charts.cDetPie.destroy();
+      charts.cDetPie = new Chart(cPie, {
+        type: 'doughnut',
+        data: {
+          labels: ['Alto', 'Médio', 'Baixo'],
+          datasets: [{data: [p.alto, p.medio, p.baixo], backgroundColor: ['#E24B4A','#EF9F27','#1D9E75'], borderWidth: 2, borderColor: 'transparent'}]
+        },
+        options: {
+          responsive: false, animation: false, cutout: '55%',
+          plugins: {
+            legend: {display: true, position: 'bottom', labels: {font: {size: 11}, boxWidth: 10}},
+            tooltip: {callbacks: {label: function(ctx) { var v = ctx.parsed; return ' ' + ctx.label + ': ' + v + ' (' + pct(v, t) + ')'; }}}
+          }
+        }
+      });
+    }
+    var cBar = document.getElementById('cDetBar');
+    if (cBar) {
+      var wb2 = cBar.parentElement.clientWidth || 200;
+      cBar.width = wb2; cBar.height = 200;
+      if (charts.cDetBar) charts.cDetBar.destroy();
+      var T = STATE.total;
+      charts.cDetBar = new Chart(cBar, {
+        type: 'bar',
+        data: {
+          labels: ['Alto risco', 'Médio risco', 'Baixo risco'],
+          datasets: [
+            {label: 'Este profissional', data: [parseFloat((p.alto/t*100).toFixed(1)), parseFloat((p.medio/t*100).toFixed(1)), parseFloat((p.baixo/t*100).toFixed(1))], backgroundColor: ['#E24B4A','#EF9F27','#1D9E75'], barPercentage: 0.4},
+            {label: 'Média municipal', data: [parseFloat((STATE.alto/T*100).toFixed(1)), parseFloat((STATE.medio/T*100).toFixed(1)), parseFloat((STATE.baixo/T*100).toFixed(1))], backgroundColor: ['rgba(226,75,74,.25)','rgba(239,159,39,.25)','rgba(29,158,117,.25)'], barPercentage: 0.4}
+          ]
+        },
+        options: {
+          responsive: false, animation: false,
+          plugins: {
+            legend: {display: true, position: 'bottom', labels: {font: {size: 10}, boxWidth: 10}},
+            tooltip: {callbacks: {label: function(ctx) { return ' ' + ctx.dataset.label + ': ' + ctx.parsed.y + '%'; }}}
+          },
+          scales: {
+            x: {ticks: {font: {size: 10}}},
+            y: {ticks: {font: {size: 10}, callback: function(v) { return v + '%'; }}, grid: {color: 'rgba(0,0,0,0.05)'}}
+          }
+        }
+      });
+    }
+  }, 50);
+}
+document.addEventListener('click',function(e){if(!e.target.closest('.search-wrap'))document.getElementById('profDropdown').classList.remove('open');});
+
+// ════════════════════════════════════════════════════════════════
+// EVOLUÇÃO MENSAL
+// ════════════════════════════════════════════════════════════════
+function deltaCell(now,old){
+  if(old===null||old===undefined)return '<span style="color:var(--sub)">—</span>';
+  var d=now-old;
+  if(d===0)return '<span class="delta-eq">=</span>';
+  var cls=d>0?'delta-up':'delta-dn';
+  return '<span class="'+cls+'">'+(d>0?'+':'')+d+'</span>';
+}
+
+function buildEvol(){
+  var cont=document.getElementById('evolContent');
+  if(!cont)return;
+  if(HISTORY.length<1){
+    cont.innerHTML='<div class="no-history"><div class="nh-icon">📅</div><h3>Nenhum carregamento registrado</h3><p style="font-size:12px;margin-top:6px">Carregue um arquivo XLS para iniciar o histórico.</p></div>';
+    return;
+  }
+  var html='';
+  // ── 1. GRÁFICO EVOLUÇÃO ─────────────────────────────────────
+  if(HISTORY.length>1){
+    html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">📊</span><span class="title">Evolução acumulada — Ciclo '+ANO_ATIVO+'</span></div>';
+    html+='<div class="evol-section-body"><div style="height:240px;position:relative"><canvas id="cEvolTotal" style="display:block"></canvas></div></div></div>';
+  }
+  // ── 2. ANÁLISE POR CARREGAMENTO ──────────────────────────────
+  html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">📋</span><span class="title">Análise por carregamento</span><span class="badge">'+HISTORY.length+' período(s) — Ciclo '+ANO_ATIVO+'</span></div><div class="evol-section-body" style="padding:0">';
+  HISTORY.forEach(function(h,idx){
+    var prev=idx>0?HISTORY[idx-1]:null;
+    var isLast=idx===HISTORY.length-1;
+    // Novos profissionais
+    var novosProfs=[];
+    if(prev){var prvSet={};prev.profNames.forEach(function(n){prvSet[n]=true;});novosProfs=h.profNames.filter(function(n){return!prvSet[n];});}
+    // Ausentes
+    var ausentesProfs=[];
+    if(prev){var curSet={};h.profNames.forEach(function(n){curSet[n]=true;});ausentesProfs=prev.profNames.filter(function(n){return!curSet[n];});}
+    // Maiores crescimentos prof
+    var crescProfs=[];
+    if(prev){
+      var prevPM={};prev.profData.forEach(function(p){prevPM[p.nome]=p.total;});
+      crescProfs=h.profData.map(function(p){var o=prevPM[p.nome]||0;return{nome:p.nome,total:p.total,delta:p.total-o,isNovo:!prevPM[p.nome]};})
+        .filter(function(p){return p.delta>0&&!p.isNovo;}).sort(function(a,b){return b.delta-a.delta;}).slice(0,5);
+    }
+    // Maiores crescimentos unidade
+    var crescUnid=[];
+    if(prev&&h.unidData&&prev.unidData){
+      var prevUM={};prev.unidData.forEach(function(u){prevUM[u.nome]=u.total;});
+      crescUnid=h.unidData.map(function(u){var o=prevUM[u.nome]||0;return{nome:u.nome,total:u.total,delta:u.total-o};})
+        .filter(function(u){return u.delta>0;}).sort(function(a,b){return b.delta-a.delta;}).slice(0,5);
+    }
+    // Unidades novas/ausentes
+    var novasUnid=[],ausentesUnid=[];
+    if(prev&&h.unidData&&prev.unidData){
+      var pUS={};prev.unidNames.forEach(function(n){pUS[n]=true;});
+      var cUS={};h.unidNames.forEach(function(n){cUS[n]=true;});
+      novasUnid=h.unidNames.filter(function(n){return!pUS[n];});
+      ausentesUnid=prev.unidNames.filter(function(n){return!cUS[n];});
+    }
+    var border=isLast?'border-left:4px solid var(--verde)':'border-left:4px solid var(--borda)';
+    html+='<div style="padding:14px 16px;border-bottom:1px solid var(--borda);'+border+'">';
+    // Cabeçalho período
+    html+='<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:12px">';
+    html+='<div><span style="font-size:14px;font-weight:700;color:#111">'+h.mes+'</span>';
+    if(isLast&&HISTORY.length>1)html+=' <span style="font-size:10px;background:var(--verde);color:#fff;padding:2px 8px;border-radius:10px;font-weight:600">último</span>';
+    html+='</div>';
+    html+='<div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px">';
+    html+='<span style="background:#f5f5f5;border-radius:6px;padding:3px 10px"><b>'+fmt(h.total)+'</b> avaliações</span>';
+    html+='<span style="background:#fff0f0;border-radius:6px;padding:3px 10px;color:#E24B4A"><b>'+h.alto+'</b> alto ('+pct(h.alto,h.total)+')</span>';
+    html+='<span style="background:#fff8ee;border-radius:6px;padding:3px 10px;color:#c07a00"><b>'+h.medio+'</b> médio ('+pct(h.medio,h.total)+')</span>';
+    html+='<span style="background:#f0faf6;border-radius:6px;padding:3px 10px;color:var(--verde)"><b>'+h.baixo+'</b> baixo ('+pct(h.baixo,h.total)+')</span>';
+    if(prev)html+='<span style="background:#f5f5f5;border-radius:6px;padding:3px 10px">Δ: <b class="'+(h.total>=prev.total?'delta-up':'delta-dn')+'">'+(h.total>prev.total?'+':'')+(h.total-prev.total)+'</b></span>';
+    html+='<span style="background:#f5f5f5;border-radius:6px;padding:3px 10px"><b>'+h.nProfs+'</b> profissionais</span>';
+    html+='</div></div>';
+    // Grid de cards
+    html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px">';
+    if(!idx&&HISTORY.length>1||idx>0){
+      // Novos profissionais
+      html+='<div style="background:#f0faf6;border-radius:8px;padding:10px 12px">';
+      html+='<div style="font-size:10px;font-weight:700;color:var(--verde);text-transform:uppercase;margin-bottom:6px">🆕 Novos profissionais ('+novosProfs.length+')</div>';
+      if(novosProfs.length)html+=novosProfs.map(function(n){return '<span class="badge-new" style="display:inline-block;margin:2px;font-size:10px">'+n+'</span>';}).join('');
+      else html+='<span style="font-size:11px;color:var(--sub)">Nenhum novo profissional</span>';
+      html+='</div>';
+      // Ausentes
+      html+='<div style="background:#fff5f5;border-radius:8px;padding:10px 12px">';
+      html+='<div style="font-size:10px;font-weight:700;color:#E24B4A;text-transform:uppercase;margin-bottom:6px">⚠️ Ausentes vs '+(prev?prev.mes:'—')+' ('+ausentesProfs.length+')</div>';
+      if(ausentesProfs.length)html+=ausentesProfs.map(function(n){return '<span class="badge-absent" style="display:inline-block;margin:2px;font-size:10px">'+n+'</span>';}).join('');
+      else html+='<span style="font-size:11px;color:var(--sub)">✅ Todos presentes</span>';
+      html+='</div>';
+    }
+    // Crescimentos prof
+    if(crescProfs.length){
+      html+='<div style="background:#fffbf0;border-radius:8px;padding:10px 12px">';
+      html+='<div style="font-size:10px;font-weight:700;color:#c07a00;text-transform:uppercase;margin-bottom:6px">🏆 Top crescimentos profissional</div>';
+      crescProfs.forEach(function(p,i){
+        html+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #f0e8d0"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':'·')+' '+p.nome+'</span><span style="color:var(--verde);font-weight:700">+'+p.delta+'</span></div>';
+      });
+      html+='</div>';
+    }
+    // Crescimentos unidade
+    if(crescUnid.length){
+      html+='<div style="background:#f0f4ff;border-radius:8px;padding:10px 12px">';
+      html+='<div style="font-size:10px;font-weight:700;color:#3b6cb5;text-transform:uppercase;margin-bottom:6px">🏥 Top crescimentos por unidade</div>';
+      crescUnid.forEach(function(u,i){
+        var nm=u.nome.replace('UBS ','').split(' ').slice(0,3).join(' ');
+        html+='<div style="display:flex;justify-content:space-between;font-size:11px;padding:2px 0;border-bottom:1px solid #dde4f5"><span>'+(i===0?'🥇':i===1?'🥈':i===2?'🥉':'·')+' '+nm+'</span><span style="color:#3b6cb5;font-weight:700">+'+u.delta+'</span></div>';
+      });
+      html+='</div>';
+    }
+    // Mudanças unidades
+    if(novasUnid.length||ausentesUnid.length){
+      html+='<div style="background:#f5f5f5;border-radius:8px;padding:10px 12px">';
+      html+='<div style="font-size:10px;font-weight:700;color:#555;text-transform:uppercase;margin-bottom:6px">🏥 Mudanças de unidade</div>';
+      if(novasUnid.length){html+='<div style="font-size:10px;color:var(--verde);font-weight:600;margin-bottom:3px">Novas ('+novasUnid.length+'):</div>';html+=novasUnid.map(function(n){return '<span class="badge-new" style="display:inline-block;margin:1px;font-size:9px">'+n.replace('UBS ','')+'</span>';}).join('');}
+      if(ausentesUnid.length){html+='<div style="font-size:10px;color:#E24B4A;font-weight:600;margin-top:4px;margin-bottom:3px">Ausentes ('+ausentesUnid.length+'):</div>';html+=ausentesUnid.map(function(n){return '<span class="badge-absent" style="display:inline-block;margin:1px;font-size:9px">'+n.replace('UBS ','')+'</span>';}).join('');}
+      html+='</div>';
+    }
+    html+='</div></div>'; // fim grid + bloco período
+  });
+  html+='</div></div>'; // fim evol-section análise
+  // ── 3. TABELA CONSOLIDADA ─────────────────────────────────────
+  if(HISTORY.length>1){
+    html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">🔄</span><span class="title">Consolidado mensal — Ciclo '+ANO_ATIVO+'</span></div><div class="evol-section-body">';
+    html+='<div style="overflow-x:auto"><table class="evol-table"><thead><tr><th>Período</th><th class="num">Total</th><th class="delta-cell">Δ</th><th class="num">Alto</th><th class="delta-cell">%</th><th class="num">Médio</th><th class="delta-cell">%</th><th class="num">Baixo</th><th class="delta-cell">%</th><th class="num">Profis.</th><th class="delta-cell">Δ</th></tr></thead><tbody>';
+    HISTORY.forEach(function(h,i){
+      var prev=i>0?HISTORY[i-1]:null;
+      var isL=i===HISTORY.length-1;
+      html+='<tr style="'+(isL?'background:var(--verde-light);font-weight:600':'')+'">';
+      html+='<td><b>'+h.mes+'</b></td>';
+      html+='<td class="num">'+fmt(h.total)+'</td><td class="delta-cell">'+(prev?deltaCell(h.total,prev.total):'—')+'</td>';
+      html+='<td class="num" style="color:#E24B4A">'+h.alto+'</td><td class="delta-cell">'+pct(h.alto,h.total)+'</td>';
+      html+='<td class="num" style="color:#c07a00">'+h.medio+'</td><td class="delta-cell">'+pct(h.medio,h.total)+'</td>';
+      html+='<td class="num" style="color:var(--verde)">'+h.baixo+'</td><td class="delta-cell">'+pct(h.baixo,h.total)+'</td>';
+      html+='<td class="num">'+h.nProfs+'</td><td class="delta-cell">'+(prev?deltaCell(h.nProfs,prev.nProfs):'—')+'</td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table></div></div></div>';
+  }
+  cont.innerHTML=html;
+  // Gráfico
+  setTimeout(function(){
+    var cEv=document.getElementById('cEvolTotal');
+    if(!cEv)return;
+    var w=cEv.parentElement.clientWidth||700;
+    cEv.style.width=w+'px';cEv.style.height='240px';
+    if(charts.cEvolTotal)charts.cEvolTotal.destroy();
+    charts.cEvolTotal=new Chart(cEv,{type:'line',
+      data:{labels:HISTORY.map(function(h){return h.mes;}),datasets:[
+        {label:'Total',data:HISTORY.map(function(h){return h.total;}),borderColor:'#1D9E75',backgroundColor:'rgba(29,158,117,.1)',tension:.3,fill:true,pointRadius:5,pointBackgroundColor:'#1D9E75'},
+        {label:'Alto risco',data:HISTORY.map(function(h){return h.alto;}),borderColor:'#E24B4A',backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:'#E24B4A'},
+        {label:'Médio risco',data:HISTORY.map(function(h){return h.medio;}),borderColor:'#EF9F27',backgroundColor:'transparent',tension:.3,pointRadius:4,pointBackgroundColor:'#EF9F27'}
+      ]},
+      options:{responsive:false,animation:false,plugins:{legend:{display:true,position:'bottom',labels:{font:{size:11},boxWidth:12}}},
+        scales:{x:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11}}},y:{grid:{color:'rgba(0,0,0,0.04)'},ticks:{font:{size:11}}}}}
+    });
+  },60);
+}
+// ════════════════════════════════════════════════════════════════
+function buildCobertura() {
+  var cont = document.getElementById('cobContent');
+  if (!cont) return;
+
+  var sk = document.getElementById('cobSort').value;
+
+  // Monta lista cruzando IVCF (STATE.unidades) com CVAT
+  var lista = STATE.unidades.map(function(u) {
+    var cad = CVAT_IDOSOS[u.nome] || null;
+    var cob = cad ? parseFloat((u.total / cad * 100).toFixed(1)) : null;
+    return {nome: u.nome, avaliados: u.total, cadastrados: cad, cobertura: cob};
+  });
+
+  // UBS no CVAT mas sem nenhum registro IVCF
+  var ivcfNomes = STATE.unidades.map(function(u){return u.nome;});
+  Object.keys(CVAT_IDOSOS).forEach(function(nome) {
+    if (ivcfNomes.indexOf(nome) === -1) {
+      lista.push({nome: nome, avaliados: 0, cadastrados: CVAT_IDOSOS[nome], cobertura: 0});
+    }
+  });
+
+  // Ordena
+  if (sk === 'cobertura') lista.sort(function(a,b){return (b.cobertura||0)-(a.cobertura||0);});
+  else if (sk === 'avaliados') lista.sort(function(a,b){return b.avaliados-a.avaliados;});
+  else if (sk === 'cadastrados') lista.sort(function(a,b){return (b.cadastrados||0)-(a.cadastrados||0);});
+  else lista.sort(function(a,b){return a.nome.localeCompare(b.nome);});
+
+  // Cards resumo
+  var comCvat = lista.filter(function(r){return r.cadastrados;});
+  var totalAvaliados = comCvat.reduce(function(s,r){return s+r.avaliados;}, 0);
+  var totalCadastrados = comCvat.reduce(function(s,r){return s+r.cadastrados;}, 0);
+  var cobGeral = totalCadastrados ? (totalAvaliados/totalCadastrados*100).toFixed(1) : 0;
+  var acima30 = comCvat.filter(function(r){return r.cobertura>=30;}).length;
+  var abaixo15 = comCvat.filter(function(r){return r.cobertura<15;}).length;
+
+  var cobColor = cobGeral >= 30 ? '#1D9E75' : cobGeral >= 15 ? '#c07a00' : '#E24B4A';
+
+  var html = '<div class="cob-card-row">';
+  html += '<div class="cob-card"><div class="lbl">Cobertura geral</div><div class="val" style="color:'+cobColor+'">'+cobGeral+'%</div><div style="font-size:11px;color:var(--sub);margin-top:2px">'+fmt(totalAvaliados)+' / '+fmt(totalCadastrados)+' idosos</div></div>';
+  html += '<div class="cob-card"><div class="lbl">UBS com cobertura ≥ 30%</div><div class="val" style="color:#1D9E75">'+acima30+'</div><div style="font-size:11px;color:var(--sub);margin-top:2px">de '+comCvat.length+' unidades</div></div>';
+  html += '<div class="cob-card"><div class="lbl">UBS com cobertura &lt; 15%</div><div class="val" style="color:#E24B4A">'+abaixo15+'</div><div style="font-size:11px;color:var(--sub);margin-top:2px">atenção necessária</div></div>';
+  html += '</div>';
+
+  html += '<div style="font-size:10px;color:var(--sub);margin-bottom:8px">Referência populacional: Relatório Qualidade — Cuidado da Pessoa Idosa ABR/2026 · Coluna: Nº total de pessoas idosas vinculadas à equipe (denominador exclusivo de idosos ≥ 60 anos)</div>';
+
+  html += '<div class="cob-scroll"><table class="cob-table"><thead><tr>';
+  html += '<th>Unidade</th><th class="num">Avaliados IVCF</th><th class="num">Cadastrados CVAT</th><th style="min-width:200px">Cobertura</th>';
+  html += '</tr></thead><tbody>';
+
+  lista.forEach(function(r) {
+    var cob = r.cobertura;
+    var cor = cob === null ? '#ccc'
+            : cob >= 90 ? '#c8951a'
+            : cob >= 60 ? '#3b6cb5'
+            : cob >= 30 ? '#1D9E75'
+            : cob >= 15 ? '#EF9F27'
+            : '#E24B4A';
+    var estrela = cob !== null && cob >= 90 ? '⭐ ' : '';
+    var nomeCell = estrela + r.nome;
+    var pctTxt = cob === null ? '<span class="cob-sem">sem ref. CVAT</span>' : '<span class="cob-pct" style="color:'+cor+'">'+cob+'%</span>';
+    var barW = cob === null ? 0 : Math.min(cob, 100);
+
+    html += '<tr>';
+    html += '<td>'+(estrela?'<span style="color:#c8951a;font-weight:700">'+nomeCell+'</span>':r.nome)+'</td>';
+    html += '<td class="num">'+fmt(r.avaliados)+'</td>';
+    html += '<td class="num">'+(r.cadastrados ? fmt(r.cadastrados) : '<span class="cob-sem">—</span>')+'</td>';
+    html += '<td><div class="cob-bar-wrap">';
+    if (r.cadastrados) {
+      html += '<div class="cob-bar-bg"><div class="cob-bar-fill" style="width:'+barW+'%;background:'+cor+'"></div></div>';
+    } else {
+      html += '<div class="cob-bar-bg"></div>';
+    }
+    html += pctTxt+'</div></td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+  cont.innerHTML = html;
+}
+
+// ════════════════════════════════════════════════════════════════
+// ARQUIVO ANUAL
+// ════════════════════════════════════════════════════════════════
+function buildAnual(){
+  var cont=document.getElementById('anualContent');
+  if(!cont)return;
+  var anos=Object.keys(ANOS_ARQUIVO).sort().reverse();
+  if(anos.length===0){
+    cont.innerHTML='<div class="no-history"><div class="nh-icon">📅</div><h3>Apenas o ciclo atual registrado</h3><p style="font-size:12px;margin-top:6px">Carregue arquivos de anos diferentes para acumular o histórico anual.</p></div>';
+    return;
+  }
+  var anosAsc=anos.slice().reverse();
+  var html='';
+
+  // ── Seletor de ano para detalhe ───────────────────────────────
+  html+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">';
+  html+='<span style="font-size:12px;color:var(--sub);font-weight:600">Ver detalhes do ciclo:</span>';
+  html+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
+  anos.forEach(function(a){
+    var isAtivo=a===ANO_ATIVO;
+    html+='<button onclick="mostrarDetalheAnual(\''+a+'\')" style="padding:5px 14px;border-radius:20px;border:2px solid '+(isAtivo?'var(--verde)':'var(--borda)')+';background:'+(isAtivo?'var(--verde)':'#fff')+';color:'+(isAtivo?'#fff':'var(--sub)')+';font-size:12px;font-weight:600;cursor:pointer">'+a+(isAtivo?' ✦':'')+'</button>';
+  });
+  html+='</div></div>';
+
+  // ── Cards resumo por ano ──────────────────────────────────────
+  html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px">';
+  anos.forEach(function(ano){
+    var d=ANOS_ARQUIVO[ano];
+    var isAtivo=ano===ANO_ATIVO;
+    var cob=d.coberturaGeral?d.coberturaGeral+'%':'—';
+    html+='<div class="evol-section" style="border:2px solid '+(isAtivo?'var(--verde)':'var(--borda)')+'">';
+    html+='<div class="evol-section-header"><span class="icon">📅</span><span class="title">'+ano+'</span>';
+    if(isAtivo)html+='<span class="badge" style="background:var(--verde-light);color:var(--verde);border-color:var(--verde)">ativo</span>';
+    html+='</div><div class="evol-section-body" style="padding:10px 14px;font-size:12px">';
+    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">';
+    html+='<div><span style="color:var(--sub)">Avaliados</span><br><b style="font-size:17px">'+fmt(d.total)+'</b></div>';
+    html+='<div><span style="color:var(--sub)">Cobertura</span><br><b style="font-size:17px;color:'+(d.coberturaGeral>=30?'var(--verde)':d.coberturaGeral>=15?'#c07a00':'#E24B4A')+'">'+cob+'</b></div>';
+    html+='<div><span style="color:#E24B4A">Alto</span> <b>'+pct(d.alto,d.total)+'</b></div>';
+    html+='<div><span style="color:#c07a00">Médio</span> <b>'+pct(d.medio,d.total)+'</b></div>';
+    html+='<div style="grid-column:span 2"><span style="color:var(--verde)">Baixo</span> <b>'+pct(d.baixo,d.total)+'</b> &nbsp;·&nbsp; <span style="color:var(--sub)">'+d.nProfs+' profissionais</span></div>';
+    html+='</div>';
+    html+='<div style="font-size:10px;color:var(--sub);margin-top:7px;border-top:1px solid var(--borda);padding-top:5px">'+d.snapshots.length+' carregamento(s)</div>';
+    html+='</div></div>';
+  });
+  html+='</div>';
+
+  // ── Comparativo geral ─────────────────────────────────────────
+  if(anos.length>1){
+    html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">📊</span><span class="title">Comparativo entre ciclos</span></div><div class="evol-section-body">';
+    html+='<div style="overflow-x:auto"><table class="evol-table"><thead><tr>';
+    html+='<th>Ciclo</th><th class="num">Avaliados</th><th class="delta-cell">Δ</th><th class="num">Cobertura</th>';
+    html+='<th class="num">Alto %</th><th class="num">Médio %</th><th class="num">Baixo %</th><th class="num">Profis.</th>';
+    html+='</tr></thead><tbody>';
+    anosAsc.forEach(function(ano,idx){
+      var d=ANOS_ARQUIVO[ano],prev=idx>0?ANOS_ARQUIVO[anosAsc[idx-1]]:null;
+      var isAtivo=ano===ANO_ATIVO;
+      var cobStr=d.coberturaGeral!=null?d.coberturaGeral+'%':'—';
+      var cobColor=d.coberturaGeral>=30?'var(--verde)':d.coberturaGeral>=15?'#c07a00':'#E24B4A';
+      html+='<tr style="'+(isAtivo?'background:var(--verde-light);font-weight:600':'')+'">';
+      html+='<td>'+ano+(isAtivo?' <span style="font-size:10px;color:var(--verde)">(ativo)</span>':'')+'</td>';
+      html+='<td class="num">'+fmt(d.total)+'</td>';
+      html+='<td class="delta-cell">'+(prev?deltaCell(d.total,prev.total):'—')+'</td>';
+      html+='<td class="num" style="font-weight:700;color:'+cobColor+'">'+cobStr+'</td>';
+      html+='<td class="num" style="color:#E24B4A">'+pct(d.alto,d.total)+'</td>';
+      html+='<td class="num" style="color:#c07a00">'+pct(d.medio,d.total)+'</td>';
+      html+='<td class="num" style="color:var(--verde)">'+pct(d.baixo,d.total)+'</td>';
+      html+='<td class="num">'+d.nProfs+'</td>';
+      html+='</tr>';
+    });
+    html+='</tbody></table></div></div></div>';
+
+    // Gráfico barras empilhadas por ciclo
+    html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">📈</span><span class="title">Distribuição de risco por ciclo</span></div><div class="evol-section-body"><div style="height:240px"><canvas id="cAnualChart" style="display:block"></canvas></div></div></div>';
+  }
+
+  // ── Detalhe do ciclo selecionado ──────────────────────────────
+  html+='<div id="detalheAnualBox"></div>';
+  cont.innerHTML=html;
+
+  // Renderiza gráfico
+  setTimeout(function(){
+    var cA=document.getElementById('cAnualChart');
+    if(!cA)return;
+    var w=cA.parentElement.clientWidth||700;cA.width=w;cA.height=240;
+    if(charts.cAnualChart)charts.cAnualChart.destroy();
+    charts.cAnualChart=new Chart(cA,{type:'bar',
+      data:{labels:anosAsc,datasets:[
+        {label:'Alto risco',data:anosAsc.map(function(a){return ANOS_ARQUIVO[a].alto;}),backgroundColor:'#E24B4A',stack:'s'},
+        {label:'Médio risco',data:anosAsc.map(function(a){return ANOS_ARQUIVO[a].medio;}),backgroundColor:'#EF9F27',stack:'s'},
+        {label:'Baixo risco',data:anosAsc.map(function(a){return ANOS_ARQUIVO[a].baixo;}),backgroundColor:'#1D9E75',stack:'s'}
+      ]},
+      options:{responsive:false,animation:false,
+        plugins:{legend:{display:true,position:'bottom',labels:{font:{size:11},boxWidth:12}},
+          tooltip:{mode:'index',intersect:false,callbacks:{
+            title:function(it){return 'Ciclo '+anosAsc[it[0].dataIndex];},
+            label:function(it){var a=ANOS_ARQUIVO[anosAsc[it.dataIndex]];var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=a[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+' ('+pct(v,a.total)+')';},
+            footer:function(it){return 'Total: '+fmt(ANOS_ARQUIVO[anosAsc[it[0].dataIndex]].total);}
+          }}},
+        scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{stacked:true,ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}}}
+      }
+    });
+    // Mostra detalhe do ano ativo por padrão
+    mostrarDetalheAnual(ANO_ATIVO);
+  },60);
+}
+
+function mostrarDetalheAnual(ano){
+  var d=ANOS_ARQUIVO[ano];
+  if(!d)return;
+  var box=document.getElementById('detalheAnualBox');
+  if(!box)return;
+  var html='<div style="margin-top:20px">';
+  html+='<div style="font-size:14px;font-weight:700;color:#111;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--verde)">Detalhamento completo — Ciclo '+ano+(ano===ANO_ATIVO?' <span style="font-size:11px;color:var(--verde);font-weight:400">(ativo)</span>':'')+'</div>';
+
+  // ── Por UNIDADE com vulnerabilidade + cobertura ───────────────
+  html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">🏥</span><span class="title">Estratificação e cobertura por unidade</span><span class="badge">'+d.unidades.length+' UBS</span></div><div class="evol-section-body">';
+  html+='<div style="overflow-x:auto"><table class="evol-table"><thead><tr>';
+  html+='<th>Unidade</th><th class="num">Avaliados</th>';
+  html+='<th class="num">Alto</th><th class="delta-cell">%</th>';
+  html+='<th class="num">Médio</th><th class="delta-cell">%</th>';
+  html+='<th class="num">Baixo</th><th class="delta-cell">%</th>';
+  html+='<th class="num">Idosos cad.</th><th style="min-width:130px">Cobertura</th>';
+  html+='</tr></thead><tbody>';
+  var unidSort=d.unidades.slice().sort(function(a,b){return (b.cobertura||0)-(a.cobertura||0);});
+  unidSort.forEach(function(u){
+    var cor=u.cobertura>=30?'var(--verde)':u.cobertura>=15?'#c07a00':'#E24B4A';
+    var barW=u.cobertura?Math.min(u.cobertura,100):0;
+    html+='<tr>';
+    html+='<td style="font-size:11px">'+u.nome+'</td>';
+    html+='<td class="num">'+u.total+'</td>';
+    html+='<td class="num" style="color:#E24B4A">'+u.alto+'</td><td class="delta-cell">'+u.pctAlto+'%</td>';
+    html+='<td class="num" style="color:#c07a00">'+u.medio+'</td><td class="delta-cell">'+u.pctMedio+'%</td>';
+    html+='<td class="num" style="color:var(--verde)">'+u.baixo+'</td><td class="delta-cell">'+u.pctBaixo+'%</td>';
+    html+='<td class="num" style="color:var(--sub)">'+(u.idososCad?fmt(u.idososCad):'—')+'</td>';
+    html+='<td><div class="cob-bar-wrap">';
+    if(u.cobertura!=null){
+      html+='<div class="cob-bar-bg"><div class="cob-bar-fill" style="width:'+barW+'%;background:'+cor+'"></div></div>';
+      html+='<span class="cob-pct" style="color:'+cor+'">'+u.cobertura+'%</span>';
+    } else {html+='<span class="cob-sem">sem ref.</span>';}
+    html+='</div></td></tr>';
+  });
+  html+='</tbody></table></div></div></div>';
+
+  // ── Por PROFISSIONAL com vulnerabilidade completa ─────────────
+  html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">👤</span><span class="title">Estratificação por profissional</span><span class="badge">'+d.profs.length+' profissionais</span></div><div class="evol-section-body">';
+  html+='<div class="cob-scroll"><table class="evol-table"><thead><tr>';
+  html+='<th>Profissional</th><th class="num">Total</th>';
+  html+='<th class="num">Alto</th><th class="delta-cell">%</th>';
+  html+='<th class="num">Médio</th><th class="delta-cell">%</th>';
+  html+='<th class="num">Baixo</th><th class="delta-cell">%</th>';
+  html+='</tr></thead><tbody>';
+  var profSort=d.profs.slice().sort(function(a,b){return b.total-a.total;});
+  profSort.forEach(function(p){
+    html+='<tr>';
+    html+='<td style="font-size:11px">'+p.nome+'</td>';
+    html+='<td class="num">'+p.total+'</td>';
+    html+='<td class="num" style="color:#E24B4A">'+p.alto+'</td><td class="delta-cell">'+p.pctAlto+'%</td>';
+    html+='<td class="num" style="color:#c07a00">'+p.medio+'</td><td class="delta-cell">'+p.pctMedio+'%</td>';
+    html+='<td class="num" style="color:var(--verde)">'+p.baixo+'</td><td class="delta-cell">'+p.pctBaixo+'%</td>';
+    html+='</tr>';
+  });
+  html+='</tbody></table></div></div></div>';
+
+  html+='</div>';
+  box.innerHTML=html;
+}
+
+function clearHistory(){
+  if(!confirm('Limpar todo o histórico mensal? Os dados atuais permanecem carregados.'))return;
+  // Mantém apenas o snapshot atual
+  HISTORY=[{
+    mes:STATE.fileDate||'Atual',dataKey:'atual',
+    total:STATE.total,alto:STATE.alto,medio:STATE.medio,baixo:STATE.baixo,
+    nProfs:STATE.nProfs,
+    profNames:STATE.profs.map(function(p){return p.nome;}),
+    profData:STATE.profs.map(function(p){return{nome:p.nome,total:p.total};}),
+    unidNames:STATE.unidades.map(function(u){return u.nome;})
+  }];
+  buildEvol();
+}
+
+// ════════════════════════════════════════════════════════════════
+// TABS
+// ════════════════════════════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(function(tab){
+  tab.addEventListener('click',function(){
+    document.querySelectorAll('.tab').forEach(function(t){t.classList.remove('active');});
+    document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active');});
+    tab.classList.add('active');
+    var id='panel-'+tab.dataset.tab;
+    document.getElementById(id).classList.add('active');
+    // Reconstrói gráficos das abas que estavam ocultas (clientWidth=0 quando display:none)
+    if(tab.dataset.tab==='faixa') buildFaixa();
+    if(tab.dataset.tab==='sexo') buildSexo();
+    if(tab.dataset.tab==='prof') buildProf();
+    if(tab.dataset.tab==='unit') buildUnit();
+    if(tab.dataset.tab==='evol') buildEvol();
+    if(tab.dataset.tab==='anual') buildAnual();
+    if(tab.dataset.tab==='cobertura') buildCobertura();
+  });
+});
+
+// INICIALIZA — aguarda renderização completa dos elementos
+function initCharts(){
+  sincronizarAnoAtivo();
+  atualizarSeletorAno();
+  requestAnimationFrame(function(){
+    requestAnimationFrame(function(){
+      buildUnit();  // aba ativa inicial
+      buildProf();
+      buildFaixa();
+      buildSexo();
+    });
+  });
+}
+
+if(document.readyState==='loading'){
+  document.addEventListener('DOMContentLoaded', initCharts);
+} else {
+  initCharts();
+}
+</script>
+<!-- RODAPÉ -->
+<footer style="background:#111;color:#aaa;text-align:center;padding:18px 24px;font-size:11px;line-height:1.8;margin-top:40px">
+  <div style="max-width:1140px;margin:0 auto">
+    <div style="font-weight:600;color:#fff;font-size:13px;margin-bottom:4px">IVCF-20 — Sistema de Estratificação de Risco do Idoso</div>
+    <div>Secretaria Municipal de Saúde de Betim — Coordenação de Atenção Primária à Saúde (APS)</div>
+    <div style="margin-top:6px">© 2026 Bruno Goecking Silva · CRM-MG 90830 · Todos os direitos reservados</div>
+    <div style="margin-top:3px;color:#888;font-size:10px">Medicina de Família e Comunidade · RQE Nº 66514</div>
+    <div style="margin-top:4px;color:#666">Desenvolvido para uso exclusivo da gestão municipal · Versão 4.0 · Dados protegidos conforme LGPD (Lei 13.709/2018)</div>
+  </div>
+</footer>
+
+</body>
+</html>
