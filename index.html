@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- saved from url=(0053)https://brunogoeckingsilva-ui.github.io/IVCF20-BETIM/ -->
+<!-- saved from url=(0081)file:///C:/Users/bruno/Downloads/SISTEMA%20IVCF-20/IVCF20_Dashboard_Betim_v4.html -->
 <html lang="pt-BR"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -197,8 +197,8 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
     <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--sub);text-transform:uppercase;margin-bottom:4px">APS BETIM</div>
     <h2 style="font-size:18px;font-weight:700;color:#111;margin-bottom:4px">IVCF-20</h2>
     <p style="font-size:12px;color:var(--sub);margin-bottom:24px;line-height:1.5">Estratificação de Risco do Idoso<br>Secretaria Municipal de Saúde</p>
-    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso" style="width:100%;padding:11px 14px;font-size:14px;text-align:center;border:2px solid var(--borda);border-radius:8px;outline:none;font-family:var(--fonte);letter-spacing:3px;margin-bottom:8px" onkeydown="if(event.key===&#39;Enter&#39;)confirmarLogin()">
-    <div id="loginErro" style="font-size:11px;color:#E24B4A;font-weight:600;min-height:16px;margin-bottom:10px"></div>
+    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso" style="width: 100%; padding: 11px 14px; font-size: 14px; text-align: center; border-top-style: ; border-top-width: ; border-right-style: ; border-right-width: ; border-bottom-style: ; border-bottom-width: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; border-radius: 8px; outline: none; font-family: var(--fonte); letter-spacing: 3px; margin-bottom: 8px;" onkeydown="if(event.key===&#39;Enter&#39;)confirmarLogin()">
+    <div id="loginErro" style="font-size:11px;color:#E24B4A;font-weight:600;min-height:16px;margin-bottom:10px">Senha incorreta. Tente novamente.</div>
     <button onclick="confirmarLogin()" style="width:100%;padding:11px;background:var(--verde);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fonte)">Entrar</button>
     <p style="font-size:10px;color:#ccc;margin-top:16px">Acesso restrito à equipe de gestão</p>
   </div>
@@ -386,8 +386,8 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
     <div class="modal-icon">🔒</div>
     <h3>Acesso restrito à gestão</h3>
     <p>Esta função é exclusiva para gestores autorizados.<br>Digite a senha de acesso para continuar.</p>
-    <input type="password" id="senhaInput" placeholder="••••••••" maxlength="30" onkeydown="if(event.key===&#39;Enter&#39;)confirmarSenha();if(event.key===&#39;Escape&#39;)fecharModal()">
-    <div class="modal-error" id="senhaErro"></div>
+    <input type="password" id="senhaInput" placeholder="••••••••" maxlength="30" onkeydown="if(event.key===&#39;Enter&#39;)confirmarSenha();if(event.key===&#39;Escape&#39;)fecharModal()" class="">
+    <div class="modal-error" id="senhaErro">Senha incorreta. Tente novamente.</div>
     <div class="modal-btn-row">
       <button class="modal-btn secondary" onclick="fecharModal()">Cancelar</button>
       <button class="modal-btn primary" onclick="confirmarSenha()">Confirmar</button>
@@ -485,13 +485,21 @@ function fmt(n){return(n||0).toLocaleString('pt-BR');}
 // LOGIN DO SISTEMA
 // ════════════════════════════════════════════════════════════════
 var SENHA_SISTEMA = 'MELHORIDADE';
+var _chartsInitialized = false;
+
 function confirmarLogin(){
   var v=document.getElementById('loginSenhaInput').value;
   if(v===SENHA_SISTEMA){
     var ls=document.getElementById('loginScreen');
     ls.style.opacity='0';ls.style.transition='opacity .4s';
-    setTimeout(function(){ls.style.display='none';},400);
-    // NÃO marca _sessionAuth aqui — upload tem senha própria
+    setTimeout(function(){
+      ls.style.display='none';
+      // Inicializa os gráficos DEPOIS que o login some e o dashboard está visível
+      if(!_chartsInitialized){
+        _chartsInitialized=true;
+        initCharts();
+      }
+    },400);
   } else {
     var inp=document.getElementById('loginSenhaInput');
     inp.style.borderColor='#E24B4A';
@@ -1629,11 +1637,7 @@ function initCharts(){
   });
 }
 
-if(document.readyState==='loading'){
-  document.addEventListener('DOMContentLoaded', initCharts);
-} else {
-  initCharts();
-}
+// Gráficos inicializados após login — ver confirmarLogin()
 </script>
 <!-- RODAPÉ -->
 <footer style="background:#111;color:#aaa;text-align:center;padding:18px 24px;font-size:11px;line-height:1.8;margin-top:40px">
