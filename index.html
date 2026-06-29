@@ -5,128 +5,259 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
-:root{--verde:#1D9E75;--verde-light:#e8f7f2;--amarelo:#EF9F27;--vermelho:#E24B4A;
-  --bg:#f7f8fa;--borda:#e8eaed;--sub:#888;--fonte:'Segoe UI',system-ui,sans-serif}
+/* ═══════════════════════════════════════════════════════════════
+   PROPORÇÃO ÁUREA  ϕ ≈ 1.6180339887
+   Escala tipográfica, espaçamentos e layout seguem ϕ
+   Base: 10px → ×ϕ → 16.18 → ×ϕ → 26.18 → ×ϕ → 42.36 → ×ϕ → 68.54
+   ═══════════════════════════════════════════════════════════════ */
+:root{
+  /* Paleta harmônica — verde primário com variações áureas */
+  --verde:       #1a7a59;   /* primário */
+  --verde-rich:  #1D9E75;   /* acento vibrante */
+  --verde-light: #eaf5f0;
+  --verde-mist:  #f0faf6;
+  --amarelo:     #c8951a;   /* ϕ-harmonico com o verde */
+  --vermelho:    #c0392b;
+  --azul:        #2c5f8a;
+
+  /* Neutros */
+  --bg:          #f9f8f6;   /* creme suave — evoca papiro, natureza */
+  --bg-card:     #ffffff;
+  --borda:       #ddd8cf;
+  --borda-light: #ede9e3;
+  --sub:         #8a7f74;
+  --text:        #2d2926;
+  --text-mid:    #5a524a;
+
+  /* Fonte — escala áurea: 10 · 10×ϕ=16.18 · 16.18×ϕ=26.18 · 9.7 · 11.8 · 14 */
+  --fonte: 'Segoe UI', system-ui, sans-serif;
+  --f-xs:  9.7px;   /* 16÷ϕ÷ϕ */
+  --f-sm:  11.8px;  /* 19.1÷ϕ */
+  --f-md:  14px;    /* base */
+  --f-lg:  16.18px; /* base×ϕ÷... ≈ 22.6→16 */
+  --f-xl:  22.6px;  /* 14×ϕ */
+  --f-2xl: 36.6px;  /* 22.6×ϕ */
+
+  /* Espaçamentos áureos: base 10px */
+  --s1:  6.18px;   /* 10÷ϕ */
+  --s2:  10px;     /* base */
+  --s3:  16.18px;  /* 10×ϕ */
+  --s4:  26.18px;  /* 10×ϕ² */
+  --s5:  42.36px;  /* 10×ϕ³ */
+  --s6:  68.54px;  /* 10×ϕ⁴ */
+
+  /* Raios de borda áureos */
+  --r1: 4px;
+  --r2: 6.18px;
+  --r3: 10px;
+  --r4: 16.18px;
+
+  /* Sombras harmônicas */
+  --shadow-sm: 0 1px 3px rgba(45,41,38,.07), 0 1px 2px rgba(45,41,38,.05);
+  --shadow-md: 0 4px 10px rgba(45,41,38,.09), 0 2px 4px rgba(45,41,38,.06);
+  --shadow-lg: 0 10px 26px rgba(45,41,38,.12), 0 4px 10px rgba(45,41,38,.08);
+}
+
+/* RESET */
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:var(--fonte);background:var(--bg);color:#444;font-size:14px}
-/* HEADER */
-header{background:#fff;border-bottom:1px solid var(--borda);padding:12px 24px;
-  display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;
-  position:sticky;top:0;z-index:200;box-shadow:0 1px 4px rgba(0,0,0,.06)}
-.logo{background:var(--verde);color:#fff;font-size:11px;font-weight:700;
-  letter-spacing:.5px;padding:5px 10px;border-radius:6px;white-space:nowrap}
-header h1{font-size:15px;font-weight:600;color:#111}
-header .sub{font-size:11px;color:var(--sub);display:block;margin-top:1px}
-.upload-zone{display:flex;align-items:center;gap:8px;border:2px dashed var(--borda);
-  border-radius:8px;padding:7px 12px;cursor:pointer;transition:border-color .2s,background .2s;background:var(--bg)}
-.upload-zone:hover,.upload-zone.drag{border-color:var(--verde);background:var(--verde-light)}
-#uploadZoneSiaps:hover,#uploadZoneSiaps.drag{border-color:#3b6cb5;background:#eef2fb}
+body{font-family:var(--fonte);background:var(--bg);color:var(--text);font-size:var(--f-md);line-height:1.618}
+
+/* ── HEADER — altura proporcional, padding áureo ── */
+header{
+  background:linear-gradient(135deg,#162e24 0%,#1a4a35 61.8%,#1D9E75 100%);
+  padding:var(--s3) var(--s5);
+  display:flex;align-items:center;justify-content:space-between;
+  flex-wrap:wrap;gap:var(--s3);
+  position:sticky;top:0;z-index:200;
+  box-shadow:0 2px 16px rgba(0,0,0,.18);
+  border-bottom:2px solid rgba(29,158,117,.4);
+}
+/* Marca gráfica — espiral áurea implícita no border-radius */
+.logo{
+  background:rgba(255,255,255,.12);
+  color:#fff;font-size:var(--f-xs);font-weight:800;
+  letter-spacing:1.618px;padding:var(--s1) var(--s3);
+  border-radius:var(--r2);white-space:nowrap;
+  border:1px solid rgba(255,255,255,.2);
+  text-transform:uppercase;
+  backdrop-filter:blur(4px);
+}
+header h1{font-size:var(--f-lg);font-weight:700;color:#fff;letter-spacing:-.2px}
+header .sub{font-size:var(--f-xs);color:rgba(255,255,255,.65);display:block;margin-top:2px}
+
+/* ── UPLOAD ZONES ── */
+.upload-zone{
+  display:flex;align-items:center;gap:var(--s2);
+  border:1.618px dashed rgba(255,255,255,.3);
+  border-radius:var(--r3);padding:var(--s1) var(--s3);
+  cursor:pointer;transition:all .25s;
+  background:rgba(255,255,255,.07);backdrop-filter:blur(4px);
+}
+.upload-zone:hover,.upload-zone.drag{
+  border-color:rgba(255,255,255,.7);
+  background:rgba(255,255,255,.15);
+}
+#uploadZoneSiaps{border-color:rgba(100,160,220,.4)}
+#uploadZoneSiaps:hover,#uploadZoneSiaps.drag{border-color:rgba(100,160,220,.8);background:rgba(100,160,220,.15)}
 .upload-zone input{display:none}
-.upload-text{font-size:11px;color:var(--sub)}
-.upload-text strong{display:block;color:var(--verde);font-size:12px}
-#fileInfo{font-size:11px;color:var(--verde);font-weight:600}
-/* MAIN */
-main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
-/* CARDS RESUMO */
-.summary-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:14px}
-.card{background:#fff;border-radius:10px;padding:13px 15px;border:1px solid var(--borda);box-shadow:0 1px 3px rgba(0,0,0,.04)}
-.card .lbl{font-size:10px;color:var(--sub);margin-bottom:4px;text-transform:uppercase;letter-spacing:.4px}
-.card .val{font-size:24px;font-weight:700;line-height:1}
-.card .spct{font-size:11px;color:var(--sub);margin-top:3px}
-.card .sdelta{font-size:11px;margin-top:3px;color:var(--verde)}
-.val.r{color:var(--vermelho)}.val.a{color:#c07a00}.val.g{color:var(--verde)}.val.n{color:#111}
-.data-info{font-size:11px;color:var(--sub);background:var(--verde-light);border-radius:6px;
-  padding:6px 12px;margin-bottom:14px;display:flex;align-items:center;gap:6px}
+.upload-text{font-size:var(--f-xs);color:rgba(255,255,255,.65)}
+.upload-text strong{display:block;color:#a8e6cf;font-size:var(--f-sm)}
+#fileInfo{font-size:var(--f-xs);color:#a8e6cf;font-weight:600}
+
+/* ── MAIN — largura máxima áurea: 1140 / ϕ ≈ 704 (conteúdo), resto sidebar ── */
+main{max-width:1140px;margin:0 auto;padding:var(--s4) var(--s3) var(--s6)}
+
+/* ── CARDS RESUMO — grid com gap áureo ── */
+.summary-row{
+  display:grid;grid-template-columns:repeat(4,1fr);
+  gap:var(--s3);margin-bottom:var(--s4);
+}
+.card{
+  background:var(--bg-card);
+  border-radius:var(--r3);
+  padding:var(--s4) var(--s3);  /* padding vertical ≈ ϕ × horizontal */
+  border:1px solid var(--borda-light);
+  box-shadow:var(--shadow-sm);
+  transition:box-shadow .2s, transform .2s;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;
+  width:3.236px;  /* 2×ϕ */
+  height:100%;
+  background:var(--verde-rich);
+  border-radius:0 2px 2px 0;
+}
+.card:hover{box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.card .lbl{
+  font-size:var(--f-xs);color:var(--sub);
+  margin-bottom:var(--s1);text-transform:uppercase;
+  letter-spacing:1.618px;font-weight:600;
+}
+.card .val{font-size:var(--f-2xl);font-weight:800;line-height:1;letter-spacing:-1px}
+.card .spct{font-size:var(--f-xs);color:var(--sub);margin-top:var(--s1)}
+.card .sdelta{font-size:var(--f-xs);margin-top:var(--s1);color:var(--verde-rich);font-weight:600}
+.val.r{color:var(--vermelho)}.val.a{color:var(--amarelo)}.val.g{color:var(--verde-rich)}.val.n{color:var(--text)}
+
+/* ── DATA INFO BAR ── */
+.data-info{
+  font-size:var(--f-xs);color:var(--sub);
+  background:var(--verde-mist);
+  border-radius:var(--r2);
+  padding:var(--s1) var(--s3);
+  margin-bottom:var(--s3);
+  display:flex;align-items:center;gap:var(--s2);
+  border:1px solid rgba(29,158,117,.15);
+}
 .data-info b{color:var(--verde)}
 /* TABS */
-.tabs{display:flex;gap:2px;border-bottom:2px solid var(--borda);margin-bottom:16px;overflow-x:auto}
-.tab{padding:8px 15px;cursor:pointer;color:var(--sub);border:none;background:none;
-  border-bottom:2px solid transparent;margin-bottom:-2px;font-size:12px;
-  font-family:var(--fonte);white-space:nowrap;font-weight:500;transition:color .15s}
-.tab.active{color:var(--verde);border-bottom-color:var(--verde);font-weight:600}
-.tab:hover:not(.active){color:#111}
+/* ── TABS — pílulas com proporção áurea ── */
+.tabs{
+  display:flex;gap:var(--s1);margin-bottom:var(--s4);overflow-x:auto;
+  background:var(--bg-card);
+  border-radius:var(--r4);
+  padding:var(--s1);
+  border:1px solid var(--borda-light);
+  flex-wrap:wrap;
+  box-shadow:var(--shadow-sm);
+}
+.tab{
+  padding:var(--s2) var(--s3);  /* vertical:horizontal = 10:16.18 ≈ ϕ */
+  cursor:pointer;color:var(--text-mid);border:none;
+  background:transparent;border-radius:var(--r3);
+  font-size:var(--f-sm);font-family:var(--fonte);white-space:nowrap;
+  font-weight:600;transition:all .2s;letter-spacing:.2px;
+}
+.tab.active{
+  color:#fff;
+  background:linear-gradient(135deg,var(--verde) 0%,var(--verde-rich) 100%);
+  box-shadow:0 var(--s1) var(--s3) rgba(26,122,89,.3);
+  font-weight:700;
+}
+.tab:hover:not(.active){background:var(--bg);color:var(--text)}
+/* Dica de navegação */
+.tabs-hint{
+  font-size:var(--f-xs);color:var(--sub);margin-bottom:var(--s2);
+  display:flex;align-items:center;gap:var(--s2);
+}
+.tabs-hint .arrow{color:var(--verde-rich);font-size:14px;animation:bounce .8s infinite alternate}
+@keyframes bounce{from{transform:translateX(0)}to{transform:translateX(5px)}}
 .panel{display:none}.panel.active{display:block}
-/* CONTROLES */
-.controls{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
-.ctrl{display:flex;flex-direction:column;gap:3px}
-.ctrl label{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:.3px}
-.ctrl select{font-size:12px;padding:5px 9px;border:1px solid var(--borda);
-  border-radius:6px;background:#fff;color:#111;cursor:pointer;outline:none}
-.ctrl select:focus{border-color:var(--verde)}
-.legend{display:flex;gap:14px;margin-bottom:8px;font-size:11px;color:var(--sub)}
-.legend span{display:flex;align-items:center;gap:4px}
-.lsq{width:9px;height:9px;border-radius:2px;flex-shrink:0}
-.chart-scroll{width:100%;border:1px solid var(--borda);border-radius:8px;background:#fff;overflow:hidden}
+/* ── CONTROLES — espaçamentos áureos ── */
+.controls{display:flex;gap:var(--s3);flex-wrap:wrap;align-items:flex-end;margin-bottom:var(--s3)}
+.ctrl{display:flex;flex-direction:column;gap:var(--s1)}
+.ctrl label{font-size:var(--f-xs);color:var(--sub);text-transform:uppercase;letter-spacing:1.618px;font-weight:600}
+.ctrl select{
+  font-size:var(--f-sm);padding:var(--s1) var(--s2);
+  border:1px solid var(--borda);border-radius:var(--r2);
+  background:#fff;color:var(--text);cursor:pointer;outline:none;
+  transition:border-color .2s;
+}
+.ctrl select:focus{border-color:var(--verde-rich)}
+.legend{display:flex;gap:var(--s3);margin-bottom:var(--s2);font-size:var(--f-xs);color:var(--sub)}
+.legend span{display:flex;align-items:center;gap:var(--s1)}
+.lsq{width:var(--s2);height:var(--s2);border-radius:2px;flex-shrink:0}
+.chart-scroll{width:100%;border:1px solid var(--borda-light);border-radius:var(--r3);background:#fff;overflow:hidden;box-shadow:var(--shadow-sm)}
 /* DETALHE PROF */
-.search-wrap{position:relative;margin-bottom:14px}
-.search-wrap input{width:100%;padding:9px 13px;font-size:13px;border:2px solid var(--borda);
-  border-radius:8px;outline:none;font-family:var(--fonte);background:#fff}
-.search-wrap input:focus{border-color:var(--verde)}
-.dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;
-  border:1px solid var(--borda);border-top:none;border-radius:0 0 8px 8px;
-  max-height:220px;overflow-y:auto;z-index:100;display:none;box-shadow:0 4px 12px rgba(0,0,0,.08)}
+.search-wrap{position:relative;margin-bottom:var(--s3)}
+.search-wrap input{width:100%;padding:var(--s2) var(--s3);font-size:var(--f-md);border:1.618px solid var(--borda);border-radius:var(--r3);outline:none;font-family:var(--fonte);background:#fff;transition:border-color .2s,box-shadow .2s;color:var(--text)}
+.search-wrap input:focus{border-color:var(--verde-rich);box-shadow:0 0 0 3.236px rgba(29,158,117,.12)}
+.dropdown{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--borda);border-top:none;border-radius:0 0 var(--r3) var(--r3);max-height:220px;overflow-y:auto;z-index:100;display:none;box-shadow:var(--shadow-lg)}
 .dropdown.open{display:block}
-.dropdown-item{padding:8px 13px;cursor:pointer;font-size:12px;border-bottom:1px solid #f5f5f5}
-.dropdown-item:hover,.dropdown-item.selected{background:var(--verde-light);color:var(--verde)}
-.item-count{float:right;font-size:11px;color:var(--sub)}
-.prof-banner{font-size:14px;font-weight:600;color:#111;padding:10px 13px;
-  background:var(--verde-light);border-radius:8px;border-left:4px solid var(--verde);margin-bottom:12px}
-.detail-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:14px}
-.detail-card{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:11px 13px;text-align:center}
-.dc-lbl{font-size:10px;color:var(--sub);margin-bottom:5px;text-transform:uppercase;letter-spacing:.3px}
-.dc-val{font-size:22px;font-weight:700;line-height:1}
-.dc-sub{font-size:11px;color:var(--sub);margin-top:3px}
-.detail-charts{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:4px}
-.dchart-box{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:12px}
-.dchart-box p{font-size:10px;color:var(--sub);text-align:center;margin-bottom:8px;text-transform:uppercase;letter-spacing:.3px}
-.no-sel{text-align:center;color:var(--sub);font-size:13px;padding:50px 0}
-.chart-box{background:#fff;border:1px solid var(--borda);border-radius:8px;padding:14px;margin-bottom:12px}
-.chart-box-title{font-size:10px;color:var(--sub);margin-bottom:10px;text-transform:uppercase;letter-spacing:.3px}
-.sexo-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
-.sexo-title{text-align:center;font-size:12px;color:var(--sub);font-weight:600;margin-bottom:7px}
+.dropdown-item{padding:var(--s2) var(--s3);cursor:pointer;font-size:var(--f-sm);border-bottom:1px solid var(--borda-light);transition:background .15s;color:var(--text-mid)}
+.dropdown-item:hover,.dropdown-item.selected{background:var(--verde-mist);color:var(--verde)}
+.item-count{float:right;font-size:var(--f-xs);color:var(--sub)}
+.prof-banner{font-size:var(--f-md);font-weight:700;color:var(--text);padding:var(--s2) var(--s3);background:linear-gradient(90deg,var(--verde-mist),transparent);border-radius:var(--r3);border-left:3.236px solid var(--verde-rich);margin-bottom:var(--s3)}
+.detail-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);margin-bottom:var(--s3)}
+.detail-card{background:var(--bg-card);border:1px solid var(--borda-light);border-radius:var(--r3);padding:var(--s3);text-align:center;box-shadow:var(--shadow-sm);transition:box-shadow .2s}
+.detail-card:hover{box-shadow:var(--shadow-md)}
+.dc-lbl{font-size:var(--f-xs);color:var(--sub);margin-bottom:var(--s1);text-transform:uppercase;letter-spacing:1.618px;font-weight:600}
+.dc-val{font-size:var(--f-xl);font-weight:800;line-height:1;letter-spacing:-.5px}
+.dc-sub{font-size:var(--f-xs);color:var(--sub);margin-top:var(--s1)}
+.detail-charts{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-top:var(--s2)}
+.dchart-box{background:var(--bg-card);border:1px solid var(--borda-light);border-radius:var(--r3);padding:var(--s3);box-shadow:var(--shadow-sm)}
+.dchart-box p{font-size:var(--f-xs);color:var(--sub);text-align:center;margin-bottom:var(--s2);text-transform:uppercase;letter-spacing:1.618px;font-weight:600}
+.no-sel{text-align:center;color:var(--sub);font-size:var(--f-md);padding:var(--s6) 0}
+.chart-box{background:var(--bg-card);border:1px solid var(--borda-light);border-radius:var(--r3);padding:var(--s4);margin-bottom:var(--s3);box-shadow:var(--shadow-sm)}
+.chart-box-title{font-size:var(--f-xs);color:var(--sub);margin-bottom:var(--s2);text-transform:uppercase;letter-spacing:1.618px;font-weight:600}
+.sexo-grid{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);margin-bottom:var(--s3)}
+.sexo-title{text-align:center;font-size:var(--f-sm);color:var(--text-mid);font-weight:700;margin-bottom:var(--s2)}
 
-/* ═══ EVOLUÇÃO MENSAL ═══ */
-.evol-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;flex-wrap:wrap;gap:10px}
-.evol-title{font-size:14px;font-weight:600;color:#111}
-.evol-sub{font-size:12px;color:var(--sub);margin-top:2px}
-.btn-clear{background:none;border:1px solid var(--borda);border-radius:6px;padding:5px 12px;
-  font-size:11px;color:var(--sub);cursor:pointer;font-family:var(--fonte)}
+
+/* ── EVOLUÇÃO MENSAL — proporção áurea ── */
+.evol-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s4);flex-wrap:wrap;gap:var(--s3)}
+.evol-title{font-size:var(--f-lg);font-weight:700;color:var(--text);letter-spacing:-.3px}
+.evol-sub{font-size:var(--f-sm);color:var(--sub);margin-top:var(--s1)}
+.btn-clear{background:none;border:1px solid var(--borda);border-radius:var(--r2);padding:var(--s1) var(--s3);font-size:var(--f-xs);color:var(--sub);cursor:pointer;font-family:var(--fonte);transition:all .2s}
 .btn-clear:hover{border-color:var(--vermelho);color:var(--vermelho)}
-.no-history{text-align:center;padding:50px 20px;color:var(--sub);background:#fff;
-  border:1px solid var(--borda);border-radius:10px}
-.no-history .nh-icon{font-size:36px;margin-bottom:12px}
-.no-history h3{font-size:14px;color:#111;margin-bottom:6px}
-/* Seções de evolução */
-.evol-section{background:#fff;border:1px solid var(--borda);border-radius:10px;margin-bottom:16px;overflow:hidden}
-.evol-section-header{padding:12px 16px;border-bottom:1px solid var(--borda);display:flex;align-items:center;gap:8px}
-.evol-section-header .icon{font-size:16px}
-.evol-section-header .title{font-size:13px;font-weight:600;color:#111}
-.evol-section-header .badge{font-size:11px;color:var(--sub);background:var(--bg);
-  padding:2px 8px;border-radius:20px;border:1px solid var(--borda)}
-.evol-section-body{padding:14px 16px}
-/* Tabela evolução */
-.evol-table{width:100%;border-collapse:collapse;font-size:12px}
-.evol-table th{text-align:left;padding:7px 10px;background:var(--bg);color:var(--sub);
-  font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.3px;border-bottom:1px solid var(--borda)}
-.evol-table td{padding:7px 10px;border-bottom:1px solid #f0f0f0;vertical-align:middle}
+.no-history{text-align:center;padding:var(--s6) var(--s4);color:var(--sub);background:var(--bg-card);border:1px solid var(--borda-light);border-radius:var(--r4);box-shadow:var(--shadow-sm)}
+.no-history .nh-icon{font-size:var(--s5);margin-bottom:var(--s3)}
+.no-history h3{font-size:var(--f-lg);color:var(--text);margin-bottom:var(--s2)}
+/* Seções */
+.evol-section{background:var(--bg-card);border:1px solid var(--borda-light);border-radius:var(--r3);margin-bottom:var(--s3);overflow:hidden;box-shadow:var(--shadow-sm);transition:box-shadow .2s}
+.evol-section:hover{box-shadow:var(--shadow-md)}
+.evol-section-header{padding:var(--s2) var(--s4);border-bottom:1px solid var(--borda-light);display:flex;align-items:center;gap:var(--s2);background:linear-gradient(90deg,var(--verde-mist),transparent)}
+.evol-section-header .icon{font-size:var(--f-lg)}
+.evol-section-header .title{font-size:var(--f-md);font-weight:700;color:var(--text)}
+.evol-section-header .badge{font-size:var(--f-xs);color:var(--sub);background:var(--bg);padding:2px var(--s2);border-radius:var(--s4);border:1px solid var(--borda)}
+.evol-section-body{padding:var(--s3) var(--s4)}
+/* Tabela */
+.evol-table{width:100%;border-collapse:collapse;font-size:var(--f-sm)}
+.evol-table th{text-align:left;padding:var(--s1) var(--s2);background:var(--bg);color:var(--sub);font-weight:700;font-size:var(--f-xs);text-transform:uppercase;letter-spacing:1.618px;border-bottom:1px solid var(--borda)}
+.evol-table td{padding:var(--s1) var(--s2);border-bottom:1px solid var(--borda-light);vertical-align:middle}
 .evol-table tr:last-child td{border-bottom:none}
-.evol-table tr:hover td{background:#fafafa}
-.evol-table .num{text-align:right;font-weight:600}
-.evol-table .delta-cell{text-align:right;font-size:11px}
-.delta-up{color:var(--verde)}.delta-dn{color:var(--vermelho)}.delta-eq{color:var(--sub)}
-.badge-new{background:#e8f7f2;color:var(--verde);font-size:10px;font-weight:700;
-  padding:2px 7px;border-radius:20px;border:1px solid var(--verde)}
-.badge-absent{background:#fff3f3;color:var(--vermelho);font-size:10px;font-weight:700;
-  padding:2px 7px;border-radius:20px;border:1px solid #f5b8b8}
-.badge-unit{background:#f0f4ff;color:#3b5bdb;font-size:10px;padding:1px 6px;border-radius:4px}
-/* Gráfico evolução total */
+.evol-table tr:hover td{background:var(--verde-mist)}
+.evol-table .num{text-align:right;font-weight:700}
+.evol-table .delta-cell{text-align:right;font-size:var(--f-xs)}
+.delta-up{color:var(--verde-rich);font-weight:700}.delta-dn{color:var(--vermelho)}.delta-eq{color:var(--sub)}
+.badge-new{background:var(--verde-mist);color:var(--verde);font-size:var(--f-xs);font-weight:700;padding:2px var(--s2);border-radius:var(--s4);border:1px solid rgba(26,122,89,.25)}
+.badge-absent{background:#fff3f3;color:var(--vermelho);font-size:var(--f-xs);font-weight:700;padding:2px var(--s2);border-radius:var(--s4);border:1px solid rgba(192,57,43,.25)}
+.badge-unit{background:#f0f4ff;color:var(--azul);font-size:var(--f-xs);padding:1px var(--s1);border-radius:var(--r1)}
 .evol-chart-wrap{height:240px;position:relative}
-/* Mês pill nav */
-.month-pills{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
-.month-pill{padding:5px 12px;border-radius:20px;font-size:11px;cursor:pointer;
-  border:1px solid var(--borda);background:#fff;color:var(--sub);transition:all .15s}
-.month-pill.active{background:var(--verde);color:#fff;border-color:var(--verde);font-weight:600}
-.month-pill:hover:not(.active){border-color:var(--verde);color:var(--verde)}
+.month-pills{display:flex;gap:var(--s1);flex-wrap:wrap;margin-bottom:var(--s3)}
+.month-pill{padding:var(--s1) var(--s3);border-radius:var(--s4);font-size:var(--f-xs);cursor:pointer;border:1px solid var(--borda);background:var(--bg-card);color:var(--sub);transition:all .2s}
+.month-pill.active{background:var(--verde-rich);color:#fff;border-color:var(--verde-rich);font-weight:700}
+.month-pill:hover:not(.active){border-color:var(--verde-rich);color:var(--verde-rich)}
 
 @media(max-width:600px){
   .summary-row{grid-template-columns:1fr 1fr}
@@ -189,15 +320,16 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
 <body>
 
 <!-- TELA DE LOGIN DO SISTEMA -->
-<div id="loginScreen" style="position: fixed; inset: 0px; background: linear-gradient(135deg, rgb(15, 76, 53) 0%, rgb(29, 158, 117) 60%, rgb(45, 201, 138) 100%); z-index: 99999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s;">
-  <div style="background:#fff;border-radius:18px;padding:40px 44px;width:340px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.25)">
-    <div style="font-size:42px;margin-bottom:8px">👴</div>
-    <div style="font-size:11px;font-weight:700;letter-spacing:2px;color:var(--sub);text-transform:uppercase;margin-bottom:4px">APS BETIM</div>
-    <h2 style="font-size:18px;font-weight:700;color:#111;margin-bottom:4px">IVCF-20</h2>
-    <p style="font-size:12px;color:var(--sub);margin-bottom:24px;line-height:1.5">Estratificação de Risco do Idoso<br>Secretaria Municipal de Saúde</p>
-    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso" style="width:100%;padding:11px 14px;font-size:14px;text-align:center;border:2px solid var(--borda);border-radius:8px;outline:none;font-family:var(--fonte);letter-spacing:3px;margin-bottom:8px" onkeydown="if(event.key==='Enter')confirmarLogin()">
+<div id="loginScreen" style="position: fixed; inset: 0px; background: linear-gradient(135deg, rgb(10, 42, 28) 0%, rgb(26, 74, 53) 38.2%, rgb(29, 158, 117) 61.8%, rgb(168, 230, 207) 100%); z-index: 99999; display: none; align-items: center; justify-content: center; opacity: 0; transition: opacity 0.4s;">
+  <div style="background:#fff;border-radius:18px;padding:40px 44px;width:360px;text-align:center;box-shadow:0 24px 60px rgba(0,0,0,0.25)">
+
+
+    <div style="font-size:10px;font-weight:800;letter-spacing:2.5px;color:#1a7a59;text-transform:uppercase;margin-bottom:6px">APS BETIM</div>
+    <h2 style="font-size:20px;font-weight:800;color:#111;margin-bottom:4px;letter-spacing:-.3px">IVCF-20</h2>
+    <p style="font-size:12px;color:var(--sub);margin-bottom:26px;line-height:1.618">Estratificação de Risco do Idoso<br>Secretaria Municipal de Saúde</p>
+    <input type="password" id="loginSenhaInput" placeholder="Digite a senha de acesso" style="width: 100%; padding: 11px 14px; font-size: 14px; text-align: center; border-top-style: ; border-top-width: ; border-right-style: ; border-right-width: ; border-bottom-style: ; border-bottom-width: ; border-left-style: ; border-left-width: ; border-image-source: ; border-image-slice: ; border-image-width: ; border-image-outset: ; border-image-repeat: ; border-radius: 8px; outline: none; font-family: var(--fonte); letter-spacing: 3px; margin-bottom: 8px; transition: border-color 0.2s;" onkeydown="if(event.key==='Enter')confirmarLogin()" onfocus="this.style.borderColor='#1D9E75'" onblur="this.style.borderColor=''">
     <div id="loginErro" style="font-size:11px;color:#E24B4A;font-weight:600;min-height:16px;margin-bottom:10px"></div>
-    <button onclick="confirmarLogin()" style="width:100%;padding:11px;background:var(--verde);color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;font-family:var(--fonte)">Entrar</button>
+    <button onclick="confirmarLogin()" style="width: 100%; padding: 12px; background: linear-gradient(135deg, rgb(26, 74, 53), rgb(29, 158, 117)); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 8px; font-size: 14px; font-weight: 700; cursor: pointer; font-family: var(--fonte); letter-spacing: 0.3px; box-shadow: rgba(29, 158, 117, 0.35) 0px 4px 14px; transition: opacity 0.2s; opacity: 1;" onmouseover="this.style.opacity='.9'" onmouseout="this.style.opacity='1'">Entrar</button>
     <p style="font-size:10px;color:#ccc;margin-top:16px">Acesso restrito à equipe de gestão</p>
   </div>
 </div>
@@ -219,7 +351,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         <strong>IVCF-20 — XLS <span style="font-size:9px;font-weight:700;color:#888;background:#f0f0f0;border:1px solid #ddd;border-radius:4px;padding:1px 5px;vertical-align:middle">🔒 GESTÃO</span></strong>
         Avaliações
       </div>
-      <span id="fileInfo">✅ Índice de vulnerabilidade clínico-funcional (IVCF-20) _ Idoso-2026-06-26_07-30-39.xls</span>
+      <span id="fileInfo">✅ Índice de vulnerabilidade clínico-funcional (IVCF-20) _ Idoso-2026-06-26_17-45-10.xls</span>
     </label>
     <!-- Upload SIAPS Idosos -->
     <label class="upload-zone" id="uploadZoneSiaps" style="border-color:#6c8ebf">
@@ -240,22 +372,31 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
     <button onclick="exportarHTML()" id="btnExportar" style="display: flex; align-items: center; gap: 6px; background: rgb(29, 158, 117); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 8px; padding: 8px 14px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: var(--fonte);">
       ⬇️ Exportar HTML<br><span style="font-size:10px;font-weight:400;opacity:.85">para publicar no GitHub</span>
     </button>
+    <!-- Botão Sair -->
+    <button onclick="sairDaPlataforma()" title="Sair da plataforma" style="display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.8);border:1.618px solid rgba(255,255,255,.25);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--fonte);transition:all .2s;backdrop-filter:blur(4px)" onmouseover="this.style.background='rgba(192,57,43,.7)';this.style.borderColor='rgba(192,57,43,.8)';this.style.color='#fff'" onmouseout="this.style.background='rgba(255,255,255,.1)';this.style.borderColor='rgba(255,255,255,.25)';this.style.color='rgba(255,255,255,.8)'">
+      🔓 Sair
+    </button>
   </div>
 </header>
 
 <main>
-  <div class="data-info"><span>📋</span><span id="dataInfoText">Dados: <b>26/06/2026</b> &nbsp;|&nbsp; Profissionais: <b>175</b> &nbsp;|&nbsp; Unidades: <b>39</b></span>
+  <div class="data-info"><span>📋</span><span id="dataInfoText">Dados: <b>26/06/2026</b> &nbsp;|&nbsp; Profissionais: <b>174</b> &nbsp;|&nbsp; Unidades: <b>39</b></span>
     <span id="siapsRef" style="font-size:11px;color:var(--sub);margin-left:10px">👴 Idosos: Relatório Qualidade ABR/2026 · <b>29.028</b> vinculados</span>
-    <span id="anoBadge" style="margin-left: auto; background: var(--verde); color: rgb(255, 255, 255); font-size: 11px; font-weight: 700; padding: 2px 10px; border-radius: 20px;">Ciclo 2026</span>
+    <span id="anoBadge" style="margin-left:auto;background:var(--verde);color:#fff;font-size:11px;font-weight:700;padding:2px 10px;border-radius:20px">Ciclo 2026</span>
   </div>
 
   <div class="summary-row">
-    <div class="card"><div class="lbl">Total avaliados</div><div class="val n" id="sTotal">3.504</div><div class="sdelta" id="sDeltaTotal">+174 vs. carga anterior</div></div>
-    <div class="card"><div class="lbl">Alto risco</div><div class="val r" id="sAlto">684</div><div class="spct" id="sAltoP">19.5% dos avaliados</div><div class="sdelta" id="sDeltaAlto">+31 vs. carga anterior</div></div>
-    <div class="card"><div class="lbl">Médio risco</div><div class="val a" id="sMedio">739</div><div class="spct" id="sMedioP">21.1% dos avaliados</div><div class="sdelta" id="sDeltaMedio">+38 vs. carga anterior</div></div>
-    <div class="card"><div class="lbl">Baixo risco</div><div class="val g" id="sBaixo">2.081</div><div class="spct" id="sBaixoP">59.4% dos avaliados</div><div class="sdelta" id="sDeltaBaixo">+105 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Total avaliados</div><div class="val n" id="sTotal">3.531</div><div class="sdelta" id="sDeltaTotal">+201 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Alto risco</div><div class="val r" id="sAlto">693</div><div class="spct" id="sAltoP">19.6% dos avaliados</div><div class="sdelta" id="sDeltaAlto">+40 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Médio risco</div><div class="val a" id="sMedio">744</div><div class="spct" id="sMedioP">21.1% dos avaliados</div><div class="sdelta" id="sDeltaMedio">+43 vs. carga anterior</div></div>
+    <div class="card"><div class="lbl">Baixo risco</div><div class="val g" id="sBaixo">2.094</div><div class="spct" id="sBaixoP">59.3% dos avaliados</div><div class="sdelta" id="sDeltaBaixo">+118 vs. carga anterior</div></div>
   </div>
 
+  <div class="tabs-hint" id="tabsHint">
+    <span class="arrow">→</span>
+    <span>Clique nas abas abaixo para navegar entre as visualizações</span>
+    <button onclick="document.getElementById('tabsHint').style.display='none'" style="background:none;border:none;color:#ccc;cursor:pointer;font-size:14px;margin-left:auto">✕</button>
+  </div>
   <div class="tabs">
     <button class="tab active" data-tab="unit">Por unidade</button>
     <button class="tab" data-tab="cobertura">🎯 Cobertura por UBS</button>
@@ -279,7 +420,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         <select id="pTop" onchange="buildProf()">
           <option value="10">Top 10</option><option value="20" selected="">Top 20</option>
           <option value="30">Top 30</option><option value="50">Top 50</option>
-        <option value="9999">Todos (175)</option></select></div>
+        <option value="9999">Todos (174)</option></select></div>
     </div>
     <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
     <div class="chart-scroll" id="wP"><div style="position:relative;width:100%;height:570px"><canvas id="cP" height="0" style="display: block; box-sizing: border-box; height: 0px; width: 0px;" width="0"></canvas></div></div>
@@ -299,27 +440,27 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         <option value="9999">Todas (39)</option></select></div>
     </div>
     <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
-    <div class="chart-scroll" id="wU"><div style="position:relative;width:100%;height:570px"><canvas id="cU" width="1106" height="570" style="display: block; box-sizing: border-box; height: 570px; width: 1106px;"></canvas></div></div>
+    <div class="chart-scroll" id="wU"><div style="position:relative;width:100%;height:570px"><canvas id="cU" width="1382" height="712" style="display: block; box-sizing: border-box; height: 570px; width: 1106px;"></canvas></div></div>
   </div>
 
   <!-- FAIXA -->
   <div class="panel" id="panel-faixa">
     <div class="legend"><span><span class="lsq" style="background:#E24B4A"></span>Alto risco</span><span><span class="lsq" style="background:#EF9F27"></span>Médio risco</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo risco</span></div>
     <div class="chart-box"><div class="chart-box-title">Distribuição por faixa etária</div>
-      <div style="height:300px"><canvas id="cF" width="1108" height="300" style="display: block; box-sizing: border-box; height: 300px; width: 1108px;"></canvas></div></div>
+      <div style="height:300px"><canvas id="cF" width="1385" height="375" style="display: block; box-sizing: border-box; height: 300px; width: 1108px;"></canvas></div></div>
   </div>
 
   <!-- SEXO -->
   <div class="panel" id="panel-sexo">
     <div class="sexo-grid">
-      <div class="chart-box"><div class="sexo-title" id="sexoLabelF">Feminino — 2.170</div>
-        <div style="height:220px"><canvas id="cSF" width="534" height="220" style="display: block; box-sizing: border-box; height: 220px; width: 534px;"></canvas></div></div>
-      <div class="chart-box"><div class="sexo-title" id="sexoLabelM">Masculino — 1.334</div>
-        <div style="height:220px"><canvas id="cSM" width="534" height="220" style="display: block; box-sizing: border-box; height: 220px; width: 534px;"></canvas></div></div>
+      <div class="chart-box"><div class="sexo-title" id="sexoLabelF">Feminino — 2.190</div>
+        <div style="height:220px"><canvas id="cSF" width="667" height="275" style="display: block; box-sizing: border-box; height: 220px; width: 534px;"></canvas></div></div>
+      <div class="chart-box"><div class="sexo-title" id="sexoLabelM">Masculino — 1.341</div>
+        <div style="height:220px"><canvas id="cSM" width="667" height="275" style="display: block; box-sizing: border-box; height: 220px; width: 534px;"></canvas></div></div>
     </div>
     <div class="chart-box"><div class="chart-box-title">Comparativo por sexo</div>
       <div class="legend" style="justify-content:center"><span><span class="lsq" style="background:#E24B4A"></span>Alto</span><span><span class="lsq" style="background:#EF9F27"></span>Médio</span><span><span class="lsq" style="background:#1D9E75"></span>Baixo</span></div>
-      <div style="height:240px"><canvas id="cSB" width="1108" height="240" style="display: block; box-sizing: border-box; height: 240px; width: 1108px;"></canvas></div></div>
+      <div style="height:240px"><canvas id="cSB" width="1385" height="300" style="display: block; box-sizing: border-box; height: 240px; width: 1108px;"></canvas></div></div>
   </div>
 
   <!-- DETALHE -->
@@ -340,7 +481,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
       </div>
       <button class="btn-clear" onclick="clearHistory()">🗑 Limpar histórico</button>
     </div>
-    <div id="evolContent"><div class="evol-section"><div class="evol-section-header"><span class="icon">📋</span><span class="title">Análise por carregamento</span><span class="badge">1 período(s) — Ciclo 2026</span></div><div class="evol-section-body" style="padding:0"><div style="padding:14px 16px;border-bottom:1px solid var(--borda);border-left:4px solid var(--verde)"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:12px"><div><span style="font-size:14px;font-weight:700;color:#111">Jun/2026</span></div><div style="display:flex;gap:6px;flex-wrap:wrap;font-size:11px"><span style="background:#f5f5f5;border-radius:6px;padding:3px 10px"><b>3.330</b> avaliações</span><span style="background:#fff0f0;border-radius:6px;padding:3px 10px;color:#E24B4A"><b>653</b> alto (19.6%)</span><span style="background:#fff8ee;border-radius:6px;padding:3px 10px;color:#c07a00"><b>701</b> médio (21.1%)</span><span style="background:#f0faf6;border-radius:6px;padding:3px 10px;color:var(--verde)"><b>1976</b> baixo (59.3%)</span><span style="background:#f5f5f5;border-radius:6px;padding:3px 10px"><b>173</b> profissionais</span></div></div><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:10px"></div></div></div></div></div>
+    <div id="evolContent"><div class="no-history"><div class="nh-icon">📅</div><h3>Nenhum histórico registrado ainda</h3><p style="font-size:12px;margin-top:6px">Carregue arquivos XLS de meses diferentes.<br>O sistema registrará automaticamente cada período.</p></div></div>
   </div>
 
   <!-- ARQUIVO ANUAL -->
@@ -351,7 +492,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         <div class="evol-sub">Histórico consolidado por ciclo anual (Jan–Dez). Cada ano reinicia a contagem do IVCF-20.</div>
       </div>
     </div>
-    <div id="anualContent"><div class="no-history"><div class="nh-icon">📅</div><h3>Apenas o ciclo atual registrado</h3><p style="font-size:12px;margin-top:6px">Carregue arquivos de anos diferentes para acumular o histórico anual.</p></div></div>
+    <div id="anualContent"><div class="no-history"><div class="nh-icon">📅</div><h3>Apenas o ciclo atual registrado</h3><p style="font-size:12px;margin-top:6px">Ao carregar arquivos de anos diferentes, o sistema arquivará automaticamente cada ciclo anual completo.</p></div></div>
   </div>
 
   <!-- COBERTURA POR UBS -->
@@ -377,7 +518,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
         </select>
       </div>
     </div>
-    <div id="cobContent"><div class="cob-card-row"><div class="cob-card"><div class="lbl">Cobertura geral</div><div class="val" style="color:#E24B4A">11.5%</div><div style="font-size:11px;color:var(--sub);margin-top:2px">3.330 / 29.028 idosos</div></div><div class="cob-card"><div class="lbl">UBS com cobertura ≥ 30%</div><div class="val" style="color:#1D9E75">5</div><div style="font-size:11px;color:var(--sub);margin-top:2px">de 41 unidades</div></div><div class="cob-card"><div class="lbl">UBS com cobertura &lt; 15%</div><div class="val" style="color:#E24B4A">30</div><div style="font-size:11px;color:var(--sub);margin-top:2px">atenção necessária</div></div></div><div style="font-size:10px;color:var(--sub);margin-bottom:8px">Referência populacional: Relatório Qualidade — Cuidado da Pessoa Idosa ABR/2026 · Coluna: Nº total de pessoas idosas vinculadas à equipe (denominador exclusivo de idosos ≥ 60 anos)</div><div class="cob-scroll"><table class="cob-table"><thead><tr><th>Unidade</th><th class="num">Avaliados IVCF</th><th class="num">Cadastrados CVAT</th><th style="min-width:200px">Cobertura</th></tr></thead><tbody><tr><td>UBS CITROLANDIA ANALIA MARQUES DE OLIVEIRA</td><td class="num">165</td><td class="num">265</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:62.3%;background:#3b6cb5"></div></div><span class="cob-pct" style="color:#3b6cb5">62.3%</span></div></td></tr><tr><td>UBS PARQUE DO CEDRO CECILIA DE PAULA OLIVEIRA</td><td class="num">219</td><td class="num">400</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:54.8%;background:#1D9E75"></div></div><span class="cob-pct" style="color:#1D9E75">54.8%</span></div></td></tr><tr><td>UBS VILA CRISTINA</td><td class="num">292</td><td class="num">661</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:44.2%;background:#1D9E75"></div></div><span class="cob-pct" style="color:#1D9E75">44.2%</span></div></td></tr><tr><td>UBS VIANOPOLIS OSVALDO CRUZ</td><td class="num">90</td><td class="num">241</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:37.3%;background:#1D9E75"></div></div><span class="cob-pct" style="color:#1D9E75">37.3%</span></div></td></tr><tr><td>UBS NITEROI</td><td class="num">307</td><td class="num">931</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:33%;background:#1D9E75"></div></div><span class="cob-pct" style="color:#1D9E75">33%</span></div></td></tr><tr><td>UBS TERESOPOLIS SONIA AUGUSTA DOS SANTOS SILVA</td><td class="num">138</td><td class="num">580</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:23.8%;background:#EF9F27"></div></div><span class="cob-pct" style="color:#EF9F27">23.8%</span></div></td></tr><tr><td>UBS HOMERO GIL</td><td class="num">291</td><td class="num">1.252</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:23.2%;background:#EF9F27"></div></div><span class="cob-pct" style="color:#EF9F27">23.2%</span></div></td></tr><tr><td>UBS CIDADE VERDE MARCIO FIRMIANO GALLO</td><td class="num">88</td><td class="num">446</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:19.7%;background:#EF9F27"></div></div><span class="cob-pct" style="color:#EF9F27">19.7%</span></div></td></tr><tr><td>UBS TRINCHEIRA NEUSA MARIA BARBIZAN FERREIRA</td><td class="num">108</td><td class="num">570</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:18.9%;background:#EF9F27"></div></div><span class="cob-pct" style="color:#EF9F27">18.9%</span></div></td></tr><tr><td>UBS ALCIDES BRAZ</td><td class="num">205</td><td class="num">1.197</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:17.1%;background:#EF9F27"></div></div><span class="cob-pct" style="color:#EF9F27">17.1%</span></div></td></tr><tr><td>UBS PTB SANTA CRUZ</td><td class="num">73</td><td class="num">428</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:17.1%;background:#EF9F27"></div></div><span class="cob-pct" style="color:#EF9F27">17.1%</span></div></td></tr><tr><td>UBS PETROPOLIS ROSA CAPUCHE</td><td class="num">59</td><td class="num">417</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:14.1%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">14.1%</span></div></td></tr><tr><td>UBS SAO JOAO</td><td class="num">84</td><td class="num">620</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:13.5%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">13.5%</span></div></td></tr><tr><td>UBS COLONIA</td><td class="num">63</td><td class="num">476</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:13.2%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">13.2%</span></div></td></tr><tr><td>UBS ALTEROSAS ANTONIO JOSE SALOMAO</td><td class="num">111</td><td class="num">849</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:13.1%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">13.1%</span></div></td></tr><tr><td>UBS MARIMBA</td><td class="num">92</td><td class="num">762</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:12.1%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">12.1%</span></div></td></tr><tr><td>UBS PETROVALE EDUARDO ANTONIO ROCHA</td><td class="num">74</td><td class="num">646</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:11.5%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">11.5%</span></div></td></tr><tr><td>UBS AMAZONAS</td><td class="num">110</td><td class="num">1.248</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:8.8%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">8.8%</span></div></td></tr><tr><td>UBS CRUZEIRO DO SUL</td><td class="num">71</td><td class="num">820</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:8.7%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">8.7%</span></div></td></tr><tr><td>UBS BUENO FRANCO MARIA OLIVEIRA E SILVA</td><td class="num">129</td><td class="num">1.598</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:8.1%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">8.1%</span></div></td></tr><tr><td>UBS VILA BEMGE CRISTOVINA C G DE SOUZA</td><td class="num">45</td><td class="num">570</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:7.9%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">7.9%</span></div></td></tr><tr><td>UBS NOSSA SENHORA DE FATIMA</td><td class="num">60</td><td class="num">774</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:7.8%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">7.8%</span></div></td></tr><tr><td>UBS CACHOEIRA WILSON OLIVEIRA ANTUNES</td><td class="num">40</td><td class="num">523</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:7.6%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">7.6%</span></div></td></tr><tr><td>UBS CAMPOS ELISEOS</td><td class="num">30</td><td class="num">414</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:7.2%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">7.2%</span></div></td></tr><tr><td>UBS BANDEIRINHAS ROSA MIGUEL SALOMAO</td><td class="num">14</td><td class="num">232</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:6%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">6%</span></div></td></tr><tr><td>UBS ANGOLA ROGERIO GUSTAVO REZENDE</td><td class="num">128</td><td class="num">2.167</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:5.9%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">5.9%</span></div></td></tr><tr><td>UBS CELSO ALVES PEDROSA</td><td class="num">32</td><td class="num">608</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:5.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">5.3%</span></div></td></tr><tr><td>UBS NOVA BADEN VIRGINIA MARIA DE CARVALHO</td><td class="num">24</td><td class="num">464</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:5.2%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">5.2%</span></div></td></tr><tr><td>UBS VILA RECREIO GENI ROSA DOS SANTOS</td><td class="num">21</td><td class="num">488</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:4.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">4.3%</span></div></td></tr><tr><td>UBS ALVORADA JOAO GREGORIO FERREIRA</td><td class="num">18</td><td class="num">467</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:3.9%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">3.9%</span></div></td></tr><tr><td>UBS UNIVERSAL JOAO NARCIZIO DE BARROS</td><td class="num">35</td><td class="num">951</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:3.7%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">3.7%</span></div></td></tr><tr><td>UBS GUANABARA</td><td class="num">21</td><td class="num">640</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:3.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">3.3%</span></div></td></tr><tr><td>UBS SITIO POCOES TEREZINHA DE JESUS LARA BRAGA</td><td class="num">16</td><td class="num">478</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:3.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">3.3%</span></div></td></tr><tr><td>UBS PAULO CAMILO</td><td class="num">19</td><td class="num">644</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">3%</span></div></td></tr><tr><td>UBS LARANJEIRAS ANTONIO CAETANO</td><td class="num">17</td><td class="num">752</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:2.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">2.3%</span></div></td></tr><tr><td>UBS ICAIVERA</td><td class="num">6</td><td class="num">387</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:1.6%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">1.6%</span></div></td></tr><tr><td>UBS SAO LUIZ BETIM</td><td class="num">15</td><td class="num">1.118</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:1.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">1.3%</span></div></td></tr><tr><td>UBS DOM BOSCO SEBASTIAO DA SILVA VIANA</td><td class="num">13</td><td class="num">1.039</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:1.3%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">1.3%</span></div></td></tr><tr><td>UBS DUQUE DE CAXIAS ELIAS VIEIRA DE SA</td><td class="num">7</td><td class="num">891</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:0.8%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">0.8%</span></div></td></tr><tr><td>UBS IMBIRUCU ANTONIO SABINO DE SOUZA</td><td class="num">0</td><td class="num">642</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:0%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">0%</span></div></td></tr><tr><td>UBS CAIC CAPELINHA</td><td class="num">0</td><td class="num">372</td><td><div class="cob-bar-wrap"><div class="cob-bar-bg"><div class="cob-bar-fill" style="width:0%;background:#E24B4A"></div></div><span class="cob-pct" style="color:#E24B4A">0%</span></div></td></tr></tbody></table></div></div>
+    <div id="cobContent"></div>
   </div>
 </main>
 
@@ -401,7 +542,7 @@ main{max-width:1140px;margin:0 auto;padding:18px 16px 50px}
 // ════════════════════════════════════════════════════════════════
 // ESTADO E DADOS INICIAIS (10/06/2026)
 // ════════════════════════════════════════════════════════════════
-var STATE={"total":3504,"alto":684,"medio":739,"baixo":2081,"nProfs":175,"nUnidades":39,"fileName":"26/06/2026","prev":null,"profs":[{"nome":"ALIERKYS LINARES NAVARRO","alto":8,"medio":11,"baixo":181,"total":200},{"nome":"BRUNO GOECKING SILVA","alto":37,"medio":51,"baixo":57,"total":145},{"nome":"PEDRO LAURO SOARES DE ALCANTARA","alto":29,"medio":8,"baixo":95,"total":132},{"nome":"PEDRO HENRIQUE NOVAIS MACIEL","alto":16,"medio":16,"baixo":99,"total":131},{"nome":"MAURO ALBERTO DO ESPIRITO SANTO","alto":12,"medio":6,"baixo":107,"total":125},{"nome":"JOAO VICTOR SA VIEIRA","alto":8,"medio":4,"baixo":104,"total":116},{"nome":"HELEN ZANANDREA SILVA OLIVEIRA","alto":5,"medio":29,"baixo":61,"total":95},{"nome":"SAMUEL CAMARA","alto":6,"medio":18,"baixo":63,"total":87},{"nome":"RENATA DAMASIA DA ROCHA BRAGA GARANDY","alto":22,"medio":16,"baixo":46,"total":84},{"nome":"FLAVIANE DELUQUE FREITAS","alto":10,"medio":10,"baixo":59,"total":79},{"nome":"ADRIANO PAULO DE CASTRO","alto":4,"medio":8,"baixo":63,"total":75},{"nome":"FERNANDA GONCALVES MELO","alto":7,"medio":19,"baixo":44,"total":70},{"nome":"LARISSA MORAIS RASTOLDO ARIOSO","alto":17,"medio":22,"baixo":25,"total":64},{"nome":"LETICIA IZABEL AMARAL","alto":18,"medio":13,"baixo":29,"total":60},{"nome":"MARIA EMILIA SOARES RIBEIRO","alto":8,"medio":17,"baixo":34,"total":59},{"nome":"LEOCADIO DE LIMA","alto":4,"medio":12,"baixo":42,"total":58},{"nome":"MATHEUS PEREZ LOZADA","alto":9,"medio":6,"baixo":42,"total":57},{"nome":"KARINA PEREIRA DE ARAUJO","alto":23,"medio":12,"baixo":20,"total":55},{"nome":"ESTEFANI DE OLIVEIRA PEREIRA","alto":5,"medio":15,"baixo":34,"total":54},{"nome":"JOSELLE DE FREITAS","alto":5,"medio":18,"baixo":25,"total":48},{"nome":"GUILHERME SOARES CARDOSO","alto":8,"medio":18,"baixo":22,"total":48},{"nome":"SAMARA CHAVES RODRIGUES COSTA","alto":6,"medio":13,"baixo":25,"total":44},{"nome":"RENATA OLIVEIRA CAETANO","alto":12,"medio":5,"baixo":24,"total":41},{"nome":"GABRIELA OLIVEIRA SOUSA","alto":7,"medio":9,"baixo":25,"total":41},{"nome":"EVELYN MARIA VALERIO DE PAULA","alto":4,"medio":8,"baixo":25,"total":37},{"nome":"TALITA GOECKING RUAS","alto":9,"medio":12,"baixo":15,"total":36},{"nome":"ANA LUIZA VELOSO LIMA","alto":14,"medio":6,"baixo":16,"total":36},{"nome":"ADRIANA MARIA MARCAL","alto":3,"medio":8,"baixo":25,"total":36},{"nome":"INGRID SILVA PRADO","alto":11,"medio":7,"baixo":17,"total":35},{"nome":"ERIKA FERNANDA CARLOS SOUZA","alto":4,"medio":10,"baixo":20,"total":34},{"nome":"IRODYS PEREZ DEL PINO","alto":6,"medio":10,"baixo":18,"total":34},{"nome":"TAINA NUNES ALMEIDA","alto":3,"medio":9,"baixo":22,"total":34},{"nome":"LIZA MUNIQUE MARINHO LACERDA","alto":8,"medio":9,"baixo":16,"total":33},{"nome":"THAIS MAIA RIBEIRO","alto":16,"medio":10,"baixo":7,"total":33},{"nome":"CAMILA DORNAS PINTO","alto":2,"medio":3,"baixo":28,"total":33},{"nome":"NATALIA ANGELICA FERNANDES JORDAO","alto":0,"medio":5,"baixo":27,"total":32},{"nome":"CAROLINA CHOUCAIR DE ANDRADE","alto":10,"medio":7,"baixo":14,"total":31},{"nome":"RENATA BUSCIOLI TEIXEIRA","alto":6,"medio":9,"baixo":15,"total":30},{"nome":"JOAO VICTOR ANICIO FEITOSA SOUSA WERNEB","alto":10,"medio":6,"baixo":14,"total":30},{"nome":"NARDA FAVIOLA CONROY RADA","alto":14,"medio":8,"baixo":7,"total":29},{"nome":"MICHELLE APARECIDA FERNANDES DA SILVA","alto":4,"medio":11,"baixo":13,"total":28},{"nome":"MARIANA ESTER DE MELO AMARAL","alto":14,"medio":10,"baixo":4,"total":28},{"nome":"DAIANE MAIRA FARIA CORREA","alto":0,"medio":4,"baixo":24,"total":28},{"nome":"ANDRE MENDES TEIXEIRA","alto":7,"medio":8,"baixo":13,"total":28},{"nome":"LOURANNY CRISTINA BORBA GOIS","alto":3,"medio":11,"baixo":10,"total":24},{"nome":"LUCAS ALVES PEREIRA PINTO DE MIRANDA","alto":6,"medio":11,"baixo":7,"total":24},{"nome":"RENATA MONICA SILVA AMARAL OLIVEIRA","alto":12,"medio":0,"baixo":11,"total":23},{"nome":"ANDRES MARLO RAIMUNDO DE PAIVA","alto":8,"medio":7,"baixo":8,"total":23},{"nome":"FERNANDA SOARES PIMASSONI VARGAS","alto":4,"medio":6,"baixo":13,"total":23},{"nome":"ANA MARIA M FREITAS L DAMASCENO","alto":4,"medio":3,"baixo":14,"total":21},{"nome":"LUCIANA CRISTINA MARQUES","alto":5,"medio":10,"baixo":5,"total":20},{"nome":"SILMARA TEIXEIRA DOS SANTOS LUIZ","alto":0,"medio":2,"baixo":18,"total":20},{"nome":"RENAN JORGE RAMOS MARTINS","alto":0,"medio":6,"baixo":13,"total":19},{"nome":"GABRIELLA SOUZA LAMOUNIER CAMPOS","alto":3,"medio":8,"baixo":8,"total":19},{"nome":"BRUNA LUIZA MAIA","alto":8,"medio":5,"baixo":6,"total":19},{"nome":"FERNANDA MARIA LOPES MORAIS","alto":2,"medio":1,"baixo":13,"total":16},{"nome":"ANA PAULA SILVA RODRIGUES","alto":0,"medio":6,"baixo":10,"total":16},{"nome":"LUDIMILA FREITAS DE ALVARENGA PALHARES","alto":4,"medio":2,"baixo":9,"total":15},{"nome":"FERNANDA SANTANA RODRIGUES","alto":2,"medio":2,"baixo":11,"total":15},{"nome":"MARCOS PAULO FERREIRA","alto":0,"medio":0,"baixo":15,"total":15},{"nome":"MARIANE GUIMARAES LABARRERE","alto":1,"medio":4,"baixo":10,"total":15},{"nome":"LEANDRO SIQUEIRA NOVAES","alto":4,"medio":3,"baixo":7,"total":14},{"nome":"JULIANA MARA LIMA","alto":2,"medio":2,"baixo":9,"total":13},{"nome":"MARIA EDUARDA MAGALHAES DE MENEZES","alto":1,"medio":5,"baixo":7,"total":13},{"nome":"MARIANE DE MATOS REIS","alto":4,"medio":2,"baixo":7,"total":13},{"nome":"MARIANA NOGUEIRA FREITAS SILVEIRA","alto":9,"medio":1,"baixo":3,"total":13},{"nome":"MARCILENE RESENDE MORAIS BESSA","alto":1,"medio":6,"baixo":6,"total":13},{"nome":"KALILI DANIELI BARRA RIBEIRO","alto":3,"medio":5,"baixo":5,"total":13},{"nome":"ANGELA DO CARMO COELHO","alto":1,"medio":3,"baixo":8,"total":12},{"nome":"HENRIQUE AMARAL FONSECA PIRES","alto":3,"medio":4,"baixo":4,"total":11},{"nome":"RAYSSA ASSUNCAO GUIMARAES","alto":3,"medio":3,"baixo":5,"total":11},{"nome":"GABRIELA PEREIRA BARBOSA","alto":3,"medio":1,"baixo":7,"total":11},{"nome":"ROBERTA NASCIMENTO SCHULTZ","alto":0,"medio":2,"baixo":8,"total":10},{"nome":"LETICIA APARECIDA MIGUEL DOS SANTOS","alto":0,"medio":3,"baixo":7,"total":10},{"nome":"MATEUS CAMPOS SANTA CECILIA","alto":2,"medio":6,"baixo":1,"total":9},{"nome":"NAYARA FERREIRA SENA","alto":2,"medio":4,"baixo":3,"total":9},{"nome":"DANIEL REIS CORREIA","alto":4,"medio":0,"baixo":5,"total":9},{"nome":"ANA CAROLINA CAMPOS COELHO","alto":4,"medio":3,"baixo":2,"total":9},{"nome":"GABRIEL JANCIK REY RODRIGUES","alto":4,"medio":1,"baixo":3,"total":8},{"nome":"DENISE MOREIRA DUTRA","alto":4,"medio":0,"baixo":4,"total":8},{"nome":"LUIZA ANDRADE RODRIGUES","alto":1,"medio":2,"baixo":5,"total":8},{"nome":"WELITON WILLIAN MACHADO","alto":6,"medio":0,"baixo":2,"total":8},{"nome":"GABRIELA BARBARA VARGAS PAULISTA ROCHA","alto":0,"medio":2,"baixo":5,"total":7},{"nome":"LETICIA MOREIRA FARIAS PIMENTEL","alto":0,"medio":4,"baixo":3,"total":7},{"nome":"HERICA MARIS MARTINS SILVA","alto":3,"medio":1,"baixo":3,"total":7},{"nome":"HENRIQUE REIS RABELO COSTA","alto":6,"medio":1,"baixo":0,"total":7},{"nome":"RICARDO EUGENIO COSTA","alto":1,"medio":2,"baixo":4,"total":7},{"nome":"ADIR JUNIOR SARDINHA GOMES","alto":5,"medio":1,"baixo":1,"total":7},{"nome":"JULIANA CORDEIRO DOS SANTOS","alto":0,"medio":1,"baixo":5,"total":6},{"nome":"EVILLYN LIANDRA ALVES DOS SANTOS LIMA","alto":3,"medio":2,"baixo":1,"total":6},{"nome":"GABRIEL PERPETUO SOARES","alto":3,"medio":3,"baixo":0,"total":6},{"nome":"ANA MARIA EUGENIA ALVES","alto":1,"medio":1,"baixo":4,"total":6},{"nome":"APARECIDA GONCALVES DOS S BUENOS AIRES","alto":2,"medio":0,"baixo":4,"total":6},{"nome":"PRISCILA ANTUNES CUNHA","alto":0,"medio":0,"baixo":6,"total":6},{"nome":"LEONARDO GOMES ROCHA","alto":4,"medio":0,"baixo":1,"total":5},{"nome":"LETICIA QUEIROGA NERY RICOTTA","alto":0,"medio":0,"baixo":5,"total":5},{"nome":"CRISTIANE REIS DOS SANTOS","alto":1,"medio":1,"baixo":3,"total":5},{"nome":"THAYLAN PATRICK FERREIRA SILVA","alto":2,"medio":2,"baixo":1,"total":5},{"nome":"ANA PAULA DOS SANTOS SILVA","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"ERNESTO MACHADO NUNES NETTO","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"BIANCA TAMARA ALBINO RODRIGUES","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"ANA LUISA TERRA LASMAR","alto":4,"medio":1,"baixo":0,"total":5},{"nome":"LUIZ FILIPE DE OLIVEIRA BRAGA","alto":3,"medio":2,"baixo":0,"total":5},{"nome":"BARBARA BRITTO OLIVEIRA","alto":2,"medio":0,"baixo":3,"total":5},{"nome":"ADEVANIL SANTOS RODRIGUES","alto":1,"medio":0,"baixo":4,"total":5},{"nome":"PATRICIA OLIVEIRA GASPAR","alto":1,"medio":2,"baixo":1,"total":4},{"nome":"ANA LUIZA FERREIRA SILVA","alto":2,"medio":1,"baixo":1,"total":4},{"nome":"IZABELA CAJUEIRO MACHADO","alto":0,"medio":2,"baixo":2,"total":4},{"nome":"BRUNNA MOURTHE PEREZ","alto":1,"medio":1,"baixo":2,"total":4},{"nome":"ISABELLA BOTELHO FIGUEIREDO MATIAS","alto":1,"medio":2,"baixo":1,"total":4},{"nome":"INYENE UDOM","alto":3,"medio":0,"baixo":1,"total":4},{"nome":"VINICIUS NASCIMENTO DE SOUZA","alto":4,"medio":0,"baixo":0,"total":4},{"nome":"MAYRALINE DE CASTILHO BUZZI","alto":3,"medio":0,"baixo":1,"total":4},{"nome":"JACKELINE PAIVA GOMES MELO","alto":0,"medio":1,"baixo":3,"total":4},{"nome":"GABRIELLE BERNARDES DE SOUSA","alto":4,"medio":0,"baixo":0,"total":4},{"nome":"LILIAN MARIA MIRANDA NEVES","alto":3,"medio":1,"baixo":0,"total":4},{"nome":"CAMILLE CRISTINA MIRANDA","alto":1,"medio":1,"baixo":1,"total":3},{"nome":"DANIELLE DE ARAUJO MOREIRA","alto":2,"medio":0,"baixo":1,"total":3},{"nome":"NATACHA DE PAULA BRITO","alto":0,"medio":0,"baixo":3,"total":3},{"nome":"LUCAS FERREIRA REZENDE","alto":1,"medio":1,"baixo":1,"total":3},{"nome":"DIOGO DE OLIVEIRA CARDOSO","alto":2,"medio":1,"baixo":0,"total":3},{"nome":"JULIA DAS GRACAS RODRIGUES DE ALMEIDA","alto":0,"medio":1,"baixo":2,"total":3},{"nome":"TENILLE PEREIRA DE MORAIS","alto":0,"medio":0,"baixo":3,"total":3},{"nome":"YAN NOGUEIRA BARBOSA","alto":3,"medio":0,"baixo":0,"total":3},{"nome":"RAPHAEL ALVES MACEDO","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"CAIO GIORGE ALVES CARDOSO","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"PATRICIA MACEDO ROCHA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"VALERIA EFREM NATIVIDADE FERREIRA","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"DAMARES CRISTINA ANDRADE ROQUE SOUSA","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"JULIANA DE ALFENAS AMBROSIO","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"ELISE DE ASSIS VIEIRA GUIMARAES","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"POLIANE AGUIAR SILVA ANTUNES","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"ROBERTA MELO CABRAL","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"JORDANA WYARA APARECIDA BARBOSA","alto":0,"medio":2,"baixo":0,"total":2},{"nome":"DIULY ANE FARIA REZENDE","alto":1,"medio":0,"baixo":1,"total":2},{"nome":"DIRCEIA NEIVA BRAZ DE MEIRA","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"MAYARA CAROLINE DE OLIVEIRA HENRIQUES","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"VICTOR FELIPE DE ASSIS","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"GISLENE FERRAZ DE OLIVEIRA","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"DHANIELLE MOREIRA RAMOS","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"TESTE INTEGRA OERG","alto":1,"medio":0,"baixo":1,"total":2},{"nome":"PATRICIA EFIGENIA DE SOUSA OLIVEIRA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"FLAVIA VANESSA LARA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"ALEXANDRA SILVESTRE DE OLIVEIRA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JULIO CESAR DE ALMEIDA SILVA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOAO PEDRO FEIJO MAIA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOANA D ARC COSTA DE OLIVEIRA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"MARIANA DA ROCHA ASSIS PINTO","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"RENATA SARAIVA TIMOTEO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"MARIA ELENA GUTIERREZ CASTRO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"PAULA CECILIA DIAS RODRIGUES","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"THAIS DOS SANTOS RIBEIRO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"ANGELA MARIA ROCHA DA HORA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"KEREN GOMES LOPES","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"ELAINE APARECIDA FERREIRA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"GABRIELA DE ASSIS LOTT","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"VITTORIA MARIA CAMPOS PEDROSA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOICIELLY FRANCA BISPO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"MARIA ANGELICA DUARTE ANICIO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"VALDIRENE ISAIAS GODINHO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JASPER COELHO NETO","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"WESLEY BARBOSA SOUZA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"DAMARYS VENCIONECK DE SOUZA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"LAURA BRAZ MARIANELLI","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"PRISCILA DE SOUZA PIMENTA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOAO PAULO DE MIRANDA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"DAVID PAZ LINO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"CARLOS MIGUEL DOS SANTOS FONSECA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"PATRICIA CRISTINA DOS SANTOS","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"BRUNA FRANCINE VIDIGAL BATISTA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOSEANE MARINHO DA SILVA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOHANNPETER BARELLA DA ROCHA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"RUTE GASPAR DE ARAUJO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"ANNA LETHICIA DOS SANTOS","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"CRISKELEM REIS MARTINS","alto":1,"medio":0,"baixo":0,"total":1}],"unidades":[{"nome":"UBS HOMERO GIL","alto":64,"medio":79,"baixo":175,"total":318},{"nome":"UBS NITEROI","alto":52,"medio":52,"baixo":210,"total":314},{"nome":"UBS VILA CRISTINA","alto":22,"medio":33,"baixo":248,"total":303},{"nome":"UBS PARQUE DO CEDRO CECILIA DE PAULA OLIVEIRA","alto":17,"medio":26,"baixo":178,"total":221},{"nome":"UBS ALCIDES BRAZ","alto":35,"medio":48,"baixo":126,"total":209},{"nome":"UBS CITROLANDIA ANALIA MARQUES DE OLIVEIRA","alto":24,"medio":58,"baixo":85,"total":167},{"nome":"UBS TERESOPOLIS SONIA AUGUSTA DOS SANTOS SILVA","alto":36,"medio":46,"baixo":75,"total":157},{"nome":"UBS ANGOLA ROGERIO GUSTAVO REZENDE","alto":48,"medio":27,"baixo":60,"total":135},{"nome":"UBS BUENO FRANCO MARIA OLIVEIRA E SILVA","alto":21,"medio":22,"baixo":88,"total":131},{"nome":"UBS ALTEROSAS ANTONIO JOSE SALOMAO","alto":31,"medio":36,"baixo":53,"total":120},{"nome":"UBS AMAZONAS","alto":26,"medio":3,"baixo":85,"total":114},{"nome":"UBS TRINCHEIRA NEUSA MARIA BARBIZAN FERREIRA","alto":27,"medio":22,"baixo":64,"total":113},{"nome":"UBS VIANOPOLIS OSVALDO CRUZ","alto":15,"medio":29,"baixo":53,"total":97},{"nome":"UBS MARIMBA","alto":17,"medio":25,"baixo":53,"total":95},{"nome":"UBS CIDADE VERDE MARCIO FIRMIANO GALLO","alto":14,"medio":25,"baixo":55,"total":94},{"nome":"UBS SAO JOAO","alto":15,"medio":23,"baixo":49,"total":87},{"nome":"UBS PETROVALE EDUARDO ANTONIO ROCHA","alto":26,"medio":25,"baixo":27,"total":78},{"nome":"UBS CRUZEIRO DO SUL","alto":6,"medio":9,"baixo":63,"total":78},{"nome":"UBS PTB SANTA CRUZ","alto":17,"medio":8,"baixo":51,"total":76},{"nome":"UBS NOSSA SENHORA DE FATIMA","alto":6,"medio":20,"baixo":41,"total":67},{"nome":"UBS COLONIA","alto":9,"medio":13,"baixo":44,"total":66},{"nome":"UBS PETROPOLIS ROSA CAPUCHE","alto":13,"medio":11,"baixo":40,"total":64},{"nome":"UBS VILA BEMGE CRISTOVINA C G DE SOUZA","alto":10,"medio":15,"baixo":21,"total":46},{"nome":"UBS CACHOEIRA WILSON OLIVEIRA ANTUNES","alto":19,"medio":13,"baixo":10,"total":42},{"nome":"UBS CELSO ALVES PEDROSA","alto":3,"medio":9,"baixo":26,"total":38},{"nome":"UBS UNIVERSAL JOAO NARCIZIO DE BARROS","alto":14,"medio":7,"baixo":16,"total":37},{"nome":"UBS VILA RECREIO GENI ROSA DOS SANTOS","alto":4,"medio":3,"baixo":24,"total":31},{"nome":"UBS CAMPOS ELISEOS","alto":10,"medio":12,"baixo":8,"total":30},{"nome":"UBS NOVA BADEN VIRGINIA MARIA DE CARVALHO","alto":9,"medio":7,"baixo":8,"total":24},{"nome":"UBS GUANABARA","alto":4,"medio":7,"baixo":11,"total":22},{"nome":"UBS PAULO CAMILO","alto":10,"medio":4,"baixo":6,"total":20},{"nome":"UBS ALVORADA JOAO GREGORIO FERREIRA","alto":11,"medio":4,"baixo":4,"total":19},{"nome":"UBS LARANJEIRAS ANTONIO CAETANO","alto":11,"medio":5,"baixo":1,"total":17},{"nome":"UBS SAO LUIZ BETIM","alto":5,"medio":2,"baixo":9,"total":16},{"nome":"UBS SITIO POCOES TEREZINHA DE JESUS LARA BRAGA","alto":5,"medio":4,"baixo":7,"total":16},{"nome":"UBS BANDEIRINHAS ROSA MIGUEL SALOMAO","alto":11,"medio":1,"baixo":3,"total":15},{"nome":"UBS DOM BOSCO SEBASTIAO DA SILVA VIANA","alto":9,"medio":2,"baixo":3,"total":14},{"nome":"UBS DUQUE DE CAXIAS ELIAS VIEIRA DE SA","alto":5,"medio":1,"baixo":1,"total":7},{"nome":"UBS ICAIVERA","alto":3,"medio":3,"baixo":0,"total":6}],"faixas":[{"nome":"60-69","alto":140,"medio":293,"baixo":1278},{"nome":"70-79","alto":269,"medio":280,"baixo":656},{"nome":"80-89","alto":206,"medio":141,"baixo":143},{"nome":"90+","alto":69,"medio":25,"baixo":4}],"sexos":[{"nome":"FEMININO","alto":476,"medio":469,"baixo":1225,"total":2170},{"nome":"MASCULINO","alto":208,"medio":270,"baixo":856,"total":1334}]};
+var STATE={"total":3531,"alto":693,"medio":744,"baixo":2094,"nProfs":174,"nUnidades":39,"fileName":"26/06/2026","prev":null,"profs":[{"nome":"ALIERKYS LINARES NAVARRO","alto":8,"medio":11,"baixo":182,"total":201},{"nome":"BRUNO GOECKING SILVA","alto":37,"medio":52,"baixo":58,"total":147},{"nome":"PEDRO HENRIQUE NOVAIS MACIEL","alto":16,"medio":17,"baixo":100,"total":133},{"nome":"PEDRO LAURO SOARES DE ALCANTARA","alto":29,"medio":8,"baixo":95,"total":132},{"nome":"MAURO ALBERTO DO ESPIRITO SANTO","alto":12,"medio":6,"baixo":107,"total":125},{"nome":"JOAO VICTOR SA VIEIRA","alto":8,"medio":4,"baixo":104,"total":116},{"nome":"HELEN ZANANDREA SILVA OLIVEIRA","alto":5,"medio":29,"baixo":61,"total":95},{"nome":"SAMUEL CAMARA","alto":6,"medio":18,"baixo":63,"total":87},{"nome":"RENATA DAMASIA DA ROCHA BRAGA GARANDY","alto":22,"medio":16,"baixo":46,"total":84},{"nome":"FLAVIANE DELUQUE FREITAS","alto":10,"medio":10,"baixo":59,"total":79},{"nome":"ADRIANO PAULO DE CASTRO","alto":4,"medio":8,"baixo":63,"total":75},{"nome":"FERNANDA GONCALVES MELO","alto":7,"medio":19,"baixo":44,"total":70},{"nome":"LARISSA MORAIS RASTOLDO ARIOSO","alto":17,"medio":22,"baixo":25,"total":64},{"nome":"MARIA EMILIA SOARES RIBEIRO","alto":8,"medio":18,"baixo":35,"total":61},{"nome":"LETICIA IZABEL AMARAL","alto":18,"medio":13,"baixo":30,"total":61},{"nome":"MATHEUS PEREZ LOZADA","alto":9,"medio":6,"baixo":44,"total":59},{"nome":"LEOCADIO DE LIMA","alto":4,"medio":12,"baixo":42,"total":58},{"nome":"KARINA PEREIRA DE ARAUJO","alto":23,"medio":12,"baixo":20,"total":55},{"nome":"ESTEFANI DE OLIVEIRA PEREIRA","alto":5,"medio":15,"baixo":34,"total":54},{"nome":"JOSELLE DE FREITAS","alto":5,"medio":18,"baixo":25,"total":48},{"nome":"GUILHERME SOARES CARDOSO","alto":8,"medio":18,"baixo":22,"total":48},{"nome":"SAMARA CHAVES RODRIGUES COSTA","alto":6,"medio":13,"baixo":25,"total":44},{"nome":"GABRIELA OLIVEIRA SOUSA","alto":8,"medio":10,"baixo":26,"total":44},{"nome":"RENATA OLIVEIRA CAETANO","alto":12,"medio":5,"baixo":24,"total":41},{"nome":"CAROLINA CHOUCAIR DE ANDRADE","alto":18,"medio":8,"baixo":14,"total":40},{"nome":"EVELYN MARIA VALERIO DE PAULA","alto":4,"medio":8,"baixo":25,"total":37},{"nome":"TALITA GOECKING RUAS","alto":9,"medio":12,"baixo":15,"total":36},{"nome":"ANA LUIZA VELOSO LIMA","alto":14,"medio":6,"baixo":16,"total":36},{"nome":"ADRIANA MARIA MARCAL","alto":3,"medio":8,"baixo":25,"total":36},{"nome":"INGRID SILVA PRADO","alto":11,"medio":7,"baixo":17,"total":35},{"nome":"ERIKA FERNANDA CARLOS SOUZA","alto":4,"medio":10,"baixo":20,"total":34},{"nome":"IRODYS PEREZ DEL PINO","alto":6,"medio":10,"baixo":18,"total":34},{"nome":"TAINA NUNES ALMEIDA","alto":3,"medio":9,"baixo":22,"total":34},{"nome":"LIZA MUNIQUE MARINHO LACERDA","alto":8,"medio":9,"baixo":16,"total":33},{"nome":"THAIS MAIA RIBEIRO","alto":16,"medio":10,"baixo":7,"total":33},{"nome":"CAMILA DORNAS PINTO","alto":2,"medio":3,"baixo":28,"total":33},{"nome":"NATALIA ANGELICA FERNANDES JORDAO","alto":0,"medio":5,"baixo":27,"total":32},{"nome":"RENATA BUSCIOLI TEIXEIRA","alto":6,"medio":9,"baixo":16,"total":31},{"nome":"JOAO VICTOR ANICIO FEITOSA SOUSA WERNEB","alto":10,"medio":6,"baixo":14,"total":30},{"nome":"NARDA FAVIOLA CONROY RADA","alto":14,"medio":8,"baixo":7,"total":29},{"nome":"MICHELLE APARECIDA FERNANDES DA SILVA","alto":4,"medio":11,"baixo":13,"total":28},{"nome":"MARIANA ESTER DE MELO AMARAL","alto":14,"medio":10,"baixo":4,"total":28},{"nome":"DAIANE MAIRA FARIA CORREA","alto":0,"medio":4,"baixo":24,"total":28},{"nome":"ANDRE MENDES TEIXEIRA","alto":7,"medio":8,"baixo":13,"total":28},{"nome":"LOURANNY CRISTINA BORBA GOIS","alto":3,"medio":11,"baixo":10,"total":24},{"nome":"LUCAS ALVES PEREIRA PINTO DE MIRANDA","alto":6,"medio":11,"baixo":7,"total":24},{"nome":"RENATA MONICA SILVA AMARAL OLIVEIRA","alto":12,"medio":0,"baixo":11,"total":23},{"nome":"ANDRES MARLO RAIMUNDO DE PAIVA","alto":8,"medio":7,"baixo":8,"total":23},{"nome":"FERNANDA SOARES PIMASSONI VARGAS","alto":4,"medio":6,"baixo":13,"total":23},{"nome":"ANA MARIA M FREITAS L DAMASCENO","alto":4,"medio":3,"baixo":14,"total":21},{"nome":"LUCIANA CRISTINA MARQUES","alto":5,"medio":10,"baixo":5,"total":20},{"nome":"SILMARA TEIXEIRA DOS SANTOS LUIZ","alto":0,"medio":2,"baixo":18,"total":20},{"nome":"FERNANDA MARIA LOPES MORAIS","alto":2,"medio":1,"baixo":16,"total":19},{"nome":"RENAN JORGE RAMOS MARTINS","alto":0,"medio":6,"baixo":13,"total":19},{"nome":"GABRIELLA SOUZA LAMOUNIER CAMPOS","alto":3,"medio":8,"baixo":8,"total":19},{"nome":"BRUNA LUIZA MAIA","alto":8,"medio":5,"baixo":6,"total":19},{"nome":"ANA PAULA SILVA RODRIGUES","alto":0,"medio":6,"baixo":10,"total":16},{"nome":"LUDIMILA FREITAS DE ALVARENGA PALHARES","alto":4,"medio":2,"baixo":9,"total":15},{"nome":"FERNANDA SANTANA RODRIGUES","alto":2,"medio":2,"baixo":11,"total":15},{"nome":"MARCOS PAULO FERREIRA","alto":0,"medio":0,"baixo":15,"total":15},{"nome":"MARIANE GUIMARAES LABARRERE","alto":1,"medio":4,"baixo":10,"total":15},{"nome":"LEANDRO SIQUEIRA NOVAES","alto":4,"medio":3,"baixo":7,"total":14},{"nome":"JULIANA MARA LIMA","alto":2,"medio":2,"baixo":9,"total":13},{"nome":"MARIA EDUARDA MAGALHAES DE MENEZES","alto":1,"medio":5,"baixo":7,"total":13},{"nome":"MARIANE DE MATOS REIS","alto":4,"medio":2,"baixo":7,"total":13},{"nome":"MARIANA NOGUEIRA FREITAS SILVEIRA","alto":9,"medio":1,"baixo":3,"total":13},{"nome":"MARCILENE RESENDE MORAIS BESSA","alto":1,"medio":6,"baixo":6,"total":13},{"nome":"KALILI DANIELI BARRA RIBEIRO","alto":3,"medio":5,"baixo":5,"total":13},{"nome":"ANGELA DO CARMO COELHO","alto":1,"medio":3,"baixo":8,"total":12},{"nome":"HENRIQUE AMARAL FONSECA PIRES","alto":3,"medio":4,"baixo":4,"total":11},{"nome":"RAYSSA ASSUNCAO GUIMARAES","alto":3,"medio":3,"baixo":5,"total":11},{"nome":"GABRIELA PEREIRA BARBOSA","alto":3,"medio":1,"baixo":7,"total":11},{"nome":"ROBERTA NASCIMENTO SCHULTZ","alto":0,"medio":2,"baixo":8,"total":10},{"nome":"LETICIA APARECIDA MIGUEL DOS SANTOS","alto":0,"medio":3,"baixo":7,"total":10},{"nome":"MATEUS CAMPOS SANTA CECILIA","alto":2,"medio":6,"baixo":1,"total":9},{"nome":"NAYARA FERREIRA SENA","alto":2,"medio":4,"baixo":3,"total":9},{"nome":"DANIEL REIS CORREIA","alto":4,"medio":0,"baixo":5,"total":9},{"nome":"ANA CAROLINA CAMPOS COELHO","alto":4,"medio":3,"baixo":2,"total":9},{"nome":"GABRIEL JANCIK REY RODRIGUES","alto":4,"medio":1,"baixo":3,"total":8},{"nome":"DENISE MOREIRA DUTRA","alto":4,"medio":0,"baixo":4,"total":8},{"nome":"LUIZA ANDRADE RODRIGUES","alto":1,"medio":2,"baixo":5,"total":8},{"nome":"WELITON WILLIAN MACHADO","alto":6,"medio":0,"baixo":2,"total":8},{"nome":"GABRIELA BARBARA VARGAS PAULISTA ROCHA","alto":0,"medio":2,"baixo":5,"total":7},{"nome":"JULIANA CORDEIRO DOS SANTOS","alto":0,"medio":1,"baixo":6,"total":7},{"nome":"LETICIA MOREIRA FARIAS PIMENTEL","alto":0,"medio":4,"baixo":3,"total":7},{"nome":"HERICA MARIS MARTINS SILVA","alto":3,"medio":1,"baixo":3,"total":7},{"nome":"HENRIQUE REIS RABELO COSTA","alto":6,"medio":1,"baixo":0,"total":7},{"nome":"RICARDO EUGENIO COSTA","alto":1,"medio":2,"baixo":4,"total":7},{"nome":"ADIR JUNIOR SARDINHA GOMES","alto":5,"medio":1,"baixo":1,"total":7},{"nome":"EVILLYN LIANDRA ALVES DOS SANTOS LIMA","alto":3,"medio":2,"baixo":1,"total":6},{"nome":"GABRIEL PERPETUO SOARES","alto":3,"medio":3,"baixo":0,"total":6},{"nome":"ANA MARIA EUGENIA ALVES","alto":1,"medio":1,"baixo":4,"total":6},{"nome":"APARECIDA GONCALVES DOS S BUENOS AIRES","alto":2,"medio":0,"baixo":4,"total":6},{"nome":"PRISCILA ANTUNES CUNHA","alto":0,"medio":0,"baixo":6,"total":6},{"nome":"LEONARDO GOMES ROCHA","alto":4,"medio":0,"baixo":1,"total":5},{"nome":"LETICIA QUEIROGA NERY RICOTTA","alto":0,"medio":0,"baixo":5,"total":5},{"nome":"CRISTIANE REIS DOS SANTOS","alto":1,"medio":1,"baixo":3,"total":5},{"nome":"THAYLAN PATRICK FERREIRA SILVA","alto":2,"medio":2,"baixo":1,"total":5},{"nome":"ANA PAULA DOS SANTOS SILVA","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"ERNESTO MACHADO NUNES NETTO","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"BIANCA TAMARA ALBINO RODRIGUES","alto":3,"medio":1,"baixo":1,"total":5},{"nome":"ANA LUISA TERRA LASMAR","alto":4,"medio":1,"baixo":0,"total":5},{"nome":"LUIZ FILIPE DE OLIVEIRA BRAGA","alto":3,"medio":2,"baixo":0,"total":5},{"nome":"BARBARA BRITTO OLIVEIRA","alto":2,"medio":0,"baixo":3,"total":5},{"nome":"ADEVANIL SANTOS RODRIGUES","alto":1,"medio":0,"baixo":4,"total":5},{"nome":"PATRICIA OLIVEIRA GASPAR","alto":1,"medio":2,"baixo":1,"total":4},{"nome":"ANA LUIZA FERREIRA SILVA","alto":2,"medio":1,"baixo":1,"total":4},{"nome":"IZABELA CAJUEIRO MACHADO","alto":0,"medio":2,"baixo":2,"total":4},{"nome":"BRUNNA MOURTHE PEREZ","alto":1,"medio":1,"baixo":2,"total":4},{"nome":"ISABELLA BOTELHO FIGUEIREDO MATIAS","alto":1,"medio":2,"baixo":1,"total":4},{"nome":"INYENE UDOM","alto":3,"medio":0,"baixo":1,"total":4},{"nome":"VINICIUS NASCIMENTO DE SOUZA","alto":4,"medio":0,"baixo":0,"total":4},{"nome":"MAYRALINE DE CASTILHO BUZZI","alto":3,"medio":0,"baixo":1,"total":4},{"nome":"JACKELINE PAIVA GOMES MELO","alto":0,"medio":1,"baixo":3,"total":4},{"nome":"GABRIELLE BERNARDES DE SOUSA","alto":4,"medio":0,"baixo":0,"total":4},{"nome":"LILIAN MARIA MIRANDA NEVES","alto":3,"medio":1,"baixo":0,"total":4},{"nome":"CAMILLE CRISTINA MIRANDA","alto":1,"medio":1,"baixo":1,"total":3},{"nome":"DANIELLE DE ARAUJO MOREIRA","alto":2,"medio":0,"baixo":1,"total":3},{"nome":"NATACHA DE PAULA BRITO","alto":0,"medio":0,"baixo":3,"total":3},{"nome":"LUCAS FERREIRA REZENDE","alto":1,"medio":1,"baixo":1,"total":3},{"nome":"DIOGO DE OLIVEIRA CARDOSO","alto":2,"medio":1,"baixo":0,"total":3},{"nome":"JULIA DAS GRACAS RODRIGUES DE ALMEIDA","alto":0,"medio":1,"baixo":2,"total":3},{"nome":"TENILLE PEREIRA DE MORAIS","alto":0,"medio":0,"baixo":3,"total":3},{"nome":"YAN NOGUEIRA BARBOSA","alto":3,"medio":0,"baixo":0,"total":3},{"nome":"RAPHAEL ALVES MACEDO","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"CAIO GIORGE ALVES CARDOSO","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"PATRICIA MACEDO ROCHA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"VALERIA EFREM NATIVIDADE FERREIRA","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"DAMARES CRISTINA ANDRADE ROQUE SOUSA","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"JULIANA DE ALFENAS AMBROSIO","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"ELISE DE ASSIS VIEIRA GUIMARAES","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"POLIANE AGUIAR SILVA ANTUNES","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"ROBERTA MELO CABRAL","alto":0,"medio":1,"baixo":1,"total":2},{"nome":"JORDANA WYARA APARECIDA BARBOSA","alto":0,"medio":2,"baixo":0,"total":2},{"nome":"DIULY ANE FARIA REZENDE","alto":1,"medio":0,"baixo":1,"total":2},{"nome":"DIRCEIA NEIVA BRAZ DE MEIRA","alto":0,"medio":0,"baixo":2,"total":2},{"nome":"MAYARA CAROLINE DE OLIVEIRA HENRIQUES","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"GISLENE FERRAZ DE OLIVEIRA","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"DHANIELLE MOREIRA RAMOS","alto":1,"medio":1,"baixo":0,"total":2},{"nome":"TESTE INTEGRA OERG","alto":1,"medio":0,"baixo":1,"total":2},{"nome":"PATRICIA EFIGENIA DE SOUSA OLIVEIRA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"FLAVIA VANESSA LARA","alto":2,"medio":0,"baixo":0,"total":2},{"nome":"ALEXANDRA SILVESTRE DE OLIVEIRA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JULIO CESAR DE ALMEIDA SILVA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOAO PEDRO FEIJO MAIA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOANA D ARC COSTA DE OLIVEIRA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"MARIANA DA ROCHA ASSIS PINTO","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"RENATA SARAIVA TIMOTEO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"MARIA ELENA GUTIERREZ CASTRO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"PAULA CECILIA DIAS RODRIGUES","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"THAIS DOS SANTOS RIBEIRO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"ANGELA MARIA ROCHA DA HORA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"KEREN GOMES LOPES","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"ELAINE APARECIDA FERREIRA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"GABRIELA DE ASSIS LOTT","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"VITTORIA MARIA CAMPOS PEDROSA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOICIELLY FRANCA BISPO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"MARIA ANGELICA DUARTE ANICIO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"VALDIRENE ISAIAS GODINHO","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JASPER COELHO NETO","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"WESLEY BARBOSA SOUZA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"DAMARYS VENCIONECK DE SOUZA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"LAURA BRAZ MARIANELLI","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"PRISCILA DE SOUZA PIMENTA","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"JOAO PAULO DE MIRANDA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"DAVID PAZ LINO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"CARLOS MIGUEL DOS SANTOS FONSECA","alto":0,"medio":0,"baixo":1,"total":1},{"nome":"PATRICIA CRISTINA DOS SANTOS","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"BRUNA FRANCINE VIDIGAL BATISTA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOSEANE MARINHO DA SILVA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"JOHANNPETER BARELLA DA ROCHA","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"RUTE GASPAR DE ARAUJO","alto":1,"medio":0,"baixo":0,"total":1},{"nome":"ANNA LETHICIA DOS SANTOS","alto":0,"medio":1,"baixo":0,"total":1},{"nome":"CRISKELEM REIS MARTINS","alto":1,"medio":0,"baixo":0,"total":1}],"unidades":[{"nome":"UBS HOMERO GIL","alto":64,"medio":81,"baixo":178,"total":323},{"nome":"UBS NITEROI","alto":52,"medio":52,"baixo":210,"total":314},{"nome":"UBS VILA CRISTINA","alto":22,"medio":33,"baixo":249,"total":304},{"nome":"UBS PARQUE DO CEDRO CECILIA DE PAULA OLIVEIRA","alto":17,"medio":26,"baixo":178,"total":221},{"nome":"UBS ALCIDES BRAZ","alto":35,"medio":48,"baixo":127,"total":210},{"nome":"UBS CITROLANDIA ANALIA MARQUES DE OLIVEIRA","alto":24,"medio":58,"baixo":85,"total":167},{"nome":"UBS TERESOPOLIS SONIA AUGUSTA DOS SANTOS SILVA","alto":36,"medio":47,"baixo":76,"total":159},{"nome":"UBS ANGOLA ROGERIO GUSTAVO REZENDE","alto":56,"medio":28,"baixo":60,"total":144},{"nome":"UBS BUENO FRANCO MARIA OLIVEIRA E SILVA","alto":21,"medio":22,"baixo":88,"total":131},{"nome":"UBS ALTEROSAS ANTONIO JOSE SALOMAO","alto":31,"medio":36,"baixo":53,"total":120},{"nome":"UBS AMAZONAS","alto":26,"medio":3,"baixo":85,"total":114},{"nome":"UBS TRINCHEIRA NEUSA MARIA BARBIZAN FERREIRA","alto":27,"medio":22,"baixo":64,"total":113},{"nome":"UBS VIANOPOLIS OSVALDO CRUZ","alto":15,"medio":29,"baixo":54,"total":98},{"nome":"UBS MARIMBA","alto":17,"medio":25,"baixo":53,"total":95},{"nome":"UBS CIDADE VERDE MARCIO FIRMIANO GALLO","alto":14,"medio":25,"baixo":55,"total":94},{"nome":"UBS SAO JOAO","alto":15,"medio":23,"baixo":49,"total":87},{"nome":"UBS PTB SANTA CRUZ","alto":17,"medio":8,"baixo":53,"total":78},{"nome":"UBS PETROVALE EDUARDO ANTONIO ROCHA","alto":26,"medio":25,"baixo":27,"total":78},{"nome":"UBS CRUZEIRO DO SUL","alto":6,"medio":9,"baixo":63,"total":78},{"nome":"UBS NOSSA SENHORA DE FATIMA","alto":6,"medio":20,"baixo":41,"total":67},{"nome":"UBS PETROPOLIS ROSA CAPUCHE","alto":14,"medio":12,"baixo":41,"total":67},{"nome":"UBS COLONIA","alto":9,"medio":13,"baixo":44,"total":66},{"nome":"UBS VILA BEMGE CRISTOVINA C G DE SOUZA","alto":10,"medio":15,"baixo":21,"total":46},{"nome":"UBS CACHOEIRA WILSON OLIVEIRA ANTUNES","alto":19,"medio":13,"baixo":10,"total":42},{"nome":"UBS CELSO ALVES PEDROSA","alto":3,"medio":9,"baixo":26,"total":38},{"nome":"UBS UNIVERSAL JOAO NARCIZIO DE BARROS","alto":14,"medio":7,"baixo":16,"total":37},{"nome":"UBS VILA RECREIO GENI ROSA DOS SANTOS","alto":4,"medio":3,"baixo":27,"total":34},{"nome":"UBS CAMPOS ELISEOS","alto":10,"medio":12,"baixo":8,"total":30},{"nome":"UBS NOVA BADEN VIRGINIA MARIA DE CARVALHO","alto":9,"medio":7,"baixo":8,"total":24},{"nome":"UBS GUANABARA","alto":4,"medio":7,"baixo":11,"total":22},{"nome":"UBS PAULO CAMILO","alto":10,"medio":4,"baixo":6,"total":20},{"nome":"UBS ALVORADA JOAO GREGORIO FERREIRA","alto":11,"medio":4,"baixo":4,"total":19},{"nome":"UBS LARANJEIRAS ANTONIO CAETANO","alto":11,"medio":5,"baixo":1,"total":17},{"nome":"UBS SAO LUIZ BETIM","alto":5,"medio":2,"baixo":9,"total":16},{"nome":"UBS SITIO POCOES TEREZINHA DE JESUS LARA BRAGA","alto":5,"medio":4,"baixo":7,"total":16},{"nome":"UBS BANDEIRINHAS ROSA MIGUEL SALOMAO","alto":11,"medio":1,"baixo":3,"total":15},{"nome":"UBS DOM BOSCO SEBASTIAO DA SILVA VIANA","alto":9,"medio":2,"baixo":3,"total":14},{"nome":"UBS DUQUE DE CAXIAS ELIAS VIEIRA DE SA","alto":5,"medio":1,"baixo":1,"total":7},{"nome":"UBS ICAIVERA","alto":3,"medio":3,"baixo":0,"total":6}],"faixas":[{"nome":"60-69","alto":142,"medio":297,"baixo":1284},{"nome":"70-79","alto":272,"medio":280,"baixo":663},{"nome":"80-89","alto":208,"medio":142,"baixo":143},{"nome":"90+","alto":71,"medio":25,"baixo":4}],"sexos":[{"nome":"FEMININO","alto":485,"medio":473,"baixo":1232,"total":2190},{"nome":"MASCULINO","alto":208,"medio":271,"baixo":862,"total":1341}]};
 
 // Histórico mensal: array de snapshots ordenados por data
 // POPULAÇÃO IDOSA POR UBS (Relatório Qualidade - Cuidado da Pessoa Idosa ABR/2026)
@@ -479,6 +620,12 @@ function fmt(n){return(n||0).toLocaleString('pt-BR');}
 // ════════════════════════════════════════════════════════════════
 // LOGIN DO SISTEMA
 // ════════════════════════════════════════════════════════════════
+function sairDaPlataforma(){
+  if(!confirm('Deseja sair da plataforma?\n\nOs dados carregados nesta sessão serão perdidos.'))return;
+  // Recarrega a página — volta para a tela de login
+  window.location.reload();
+}
+
 var SENHA_SISTEMA = 'MELHORIDADE';
 var _chartsInitialized = false;
 
@@ -888,7 +1035,7 @@ function mostrarAlertaNovoAno(ano){
   d.innerHTML='<div style="font-size:28px;margin-bottom:8px">🎉</div><div style="font-weight:700;font-size:15px;color:#111;margin-bottom:6px">Novo ciclo anual iniciado: '+ano+'</div><div style="font-size:12px;color:var(--sub);line-height:1.6">A contagem por profissional e por equipe foi <b>reiniciada do zero</b>.<br>Os dados de '+String(parseInt(ano)-1)+' foram arquivados e podem ser consultados na aba <b>📅 Arquivo anual</b>.</div>';
   var btn=document.createElement('button');
   btn.textContent='Entendido';
-  btn.style.cssText='margin-top:14px;padding:7px 22px;background:var(--verde);color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-weight:600';
+  btn.style.cssText='margin-top:14px;padding:7px 22px;background:var(--verde-rich);color:#fff;border:none;border-radius:var(--r2);cursor:pointer;font-size:13px;font-weight:600';
   btn.onclick=function(){document.body.removeChild(d);};
   d.appendChild(btn);
   document.body.appendChild(d);
@@ -1006,7 +1153,7 @@ function barH(id,wrapId,raw,sk,top,lbPxFallback){
         }
       },
       scales:{
-        x:{stacked:true,grid:{color:'rgba(0,0,0,0.05)'},ticks:{font:{size:10},color:'#888'}},
+        x:{stacked:true,grid:{color:'rgba(45,41,38,0.04)'},ticks:{font:{size:10},color:'#888'}},
         y:{stacked:true,ticks:{font:{size:10},color:'#333',autoSkip:false},
            afterFit:function(ax){ax.width=lbPx;}}
       }
@@ -1031,7 +1178,7 @@ function buildFaixa(){
     title:function(it){return F[it[0].dataIndex].nome+' anos';},
     label:function(it){var f=F[it.dataIndex],t=f.alto+f.medio+f.baixo;var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=f[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+'  ('+pct(v,t)+')';},
     footer:function(it){var f=F[it[0].dataIndex];return 'Total: '+(f.alto+f.medio+f.baixo);}
-  }}},scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,0.05)'}}}
+  }}},scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(45,41,38,0.04)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(45,41,38,0.04)'}}}
   }});
 }
 function makePie(id,d){
@@ -1062,7 +1209,7 @@ function buildSexo(){
     title:function(it){return it[0].dataIndex===0?'Feminino':'Masculino';},
     label:function(it){var d=[fem,mas][it.dataIndex],t=d.alto+d.medio+d.baixo;var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=d[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+'  ('+pct(v,t)+')';},
     footer:function(it){var d=[fem,mas][it.dataIndex];return 'Total: '+(d.alto+d.medio+d.baixo);}
-  }}},scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(0,0,0,0.05)'}}}
+  }}},scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(45,41,38,0.04)'}},y:{ticks:{font:{size:11},color:'#888'},grid:{color:'rgba(45,41,38,0.04)'}}}
   }});
 }
 
@@ -1164,7 +1311,7 @@ function showProfDetail(p){
           },
           scales: {
             x: {ticks: {font: {size: 10}}},
-            y: {ticks: {font: {size: 10}, callback: function(v) { return v + '%'; }}, grid: {color: 'rgba(0,0,0,0.05)'}}
+            y: {ticks: {font: {size: 10}, callback: function(v) { return v + '%'; }}, grid: {color: 'rgba(45,41,38,0.04)'}}
           }
         }
       });
@@ -1423,35 +1570,36 @@ function buildAnual(){
   var anosAsc=anos.slice().reverse();
   var html='';
 
-  // ── Seletor de ano para detalhe ───────────────────────────────
-  html+='<div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px">';
-  html+='<span style="font-size:12px;color:var(--sub);font-weight:600">Ver detalhes do ciclo:</span>';
-  html+='<div style="display:flex;gap:6px;flex-wrap:wrap">';
-  anos.forEach(function(a){
-    var isAtivo=a===ANO_ATIVO;
-    html+='<button onclick="mostrarDetalheAnual(\''+a+'\')" style="padding:5px 14px;border-radius:20px;border:2px solid '+(isAtivo?'var(--verde)':'var(--borda)')+';background:'+(isAtivo?'var(--verde)':'#fff')+';color:'+(isAtivo?'#fff':'var(--sub)')+';font-size:12px;font-weight:600;cursor:pointer">'+a+(isAtivo?' ✦':'')+'</button>';
-  });
-  html+='</div></div>';
-
   // ── Cards resumo por ano ──────────────────────────────────────
   html+='<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;margin-bottom:18px">';
   anos.forEach(function(ano){
     var d=ANOS_ARQUIVO[ano];
     var isAtivo=ano===ANO_ATIVO;
     var cob=d.coberturaGeral?d.coberturaGeral+'%':'—';
-    html+='<div class="evol-section" style="border:2px solid '+(isAtivo?'var(--verde)':'var(--borda)')+'">';
-    html+='<div class="evol-section-header"><span class="icon">📅</span><span class="title">'+ano+'</span>';
-    if(isAtivo)html+='<span class="badge" style="background:var(--verde-light);color:var(--verde);border-color:var(--verde)">ativo</span>';
-    html+='</div><div class="evol-section-body" style="padding:10px 14px;font-size:12px">';
-    html+='<div style="display:grid;grid-template-columns:1fr 1fr;gap:5px">';
-    html+='<div><span style="color:var(--sub)">Avaliados</span><br><b style="font-size:17px">'+fmt(d.total)+'</b></div>';
-    html+='<div><span style="color:var(--sub)">Cobertura</span><br><b style="font-size:17px;color:'+(d.coberturaGeral>=30?'var(--verde)':d.coberturaGeral>=15?'#c07a00':'#E24B4A')+'">'+cob+'</b></div>';
-    html+='<div><span style="color:#E24B4A">Alto</span> <b>'+pct(d.alto,d.total)+'</b></div>';
-    html+='<div><span style="color:#c07a00">Médio</span> <b>'+pct(d.medio,d.total)+'</b></div>';
-    html+='<div style="grid-column:span 2"><span style="color:var(--verde)">Baixo</span> <b>'+pct(d.baixo,d.total)+'</b> &nbsp;·&nbsp; <span style="color:var(--sub)">'+d.nProfs+' profissionais</span></div>';
+    var isOpen = isAtivo; // ativo começa aberto
+    html+='<div class="evol-section" id="anoCard_'+ano+'" style="border:2px solid '+(isAtivo?'var(--verde-rich)':'var(--borda-light)')+';transition:border-color .2s;cursor:pointer" onclick="toggleAnoCard(\''+ano+'\')">';
+    html+='<div class="evol-section-header" style="justify-content:space-between">';
+    html+='<div style="display:flex;align-items:center;gap:8px"><span class="icon">📅</span><span class="title" style="font-size:16px">'+ano+'</span>';
+    if(isAtivo)html+='<span class="badge" style="background:var(--verde-mist);color:var(--verde);border-color:var(--verde);font-weight:700">✦ ativo</span>';
     html+='</div>';
-    html+='<div style="font-size:10px;color:var(--sub);margin-top:7px;border-top:1px solid var(--borda);padding-top:5px">'+d.snapshots.length+' carregamento(s)</div>';
+    html+='<span id="anoChevron_'+ano+'" style="font-size:18px;color:var(--sub);transition:transform .25s;'+(isOpen?'transform:rotate(180deg)':'')+'">▾</span>';
+    html+='</div>';
+    // Resumo sempre visível (mini)
+    html+='<div style="padding:8px 16px 10px;display:flex;gap:16px;flex-wrap:wrap;font-size:11px;border-bottom:1px solid var(--borda-light)">';
+    html+='<span><b style="font-size:15px;color:var(--text)">'+fmt(d.total)+'</b> <span style="color:var(--sub)">avaliados</span></span>';
+    html+='<span style="color:#E24B4A"><b>'+pct(d.alto,d.total)+'</b> alto</span>';
+    html+='<span style="color:#c07a00"><b>'+pct(d.medio,d.total)+'</b> médio</span>';
+    html+='<span style="color:var(--verde-rich)"><b>'+pct(d.baixo,d.total)+'</b> baixo</span>';
+    html+='<span style="color:var(--sub)"><b>'+d.nProfs+'</b> profissionais · '+d.snapshots.length+' carregamento(s)</span>';
+    if(d.coberturaGeral!=null)html+='<span style="color:'+(d.coberturaGeral>=30?'var(--verde-rich)':d.coberturaGeral>=15?'#c07a00':'#E24B4A')+'"><b>'+d.coberturaGeral+'%</b> cobertura</span>';
+    html+='</div>';
+    // Conteúdo expansível
+    html+='<div id="anoBody_'+ano+'" style="display:'+(isOpen?'block':'none')+'">';
+    html+='<div class="evol-section-body" style="padding:12px 16px;font-size:12px">';
+    html+='<p style="font-size:11px;color:var(--sub);margin-bottom:10px">Clique em <b>Ver detalhes completos</b> para ver estratificação por unidade e profissional.</p>';
+    html+='<button onclick="event.stopPropagation();mostrarDetalheAnual(\''+ano+'\')" style="padding:7px 16px;background:var(--verde-rich);color:#fff;border:none;border-radius:var(--r2);font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fonte)">📋 Ver detalhes completos de '+ano+'</button>';
     html+='</div></div>';
+    html+='</div>';
   });
   html+='</div>';
 
@@ -1484,8 +1632,6 @@ function buildAnual(){
     html+='<div class="evol-section"><div class="evol-section-header"><span class="icon">📈</span><span class="title">Distribuição de risco por ciclo</span></div><div class="evol-section-body"><div style="height:240px"><canvas id="cAnualChart" style="display:block"></canvas></div></div></div>';
   }
 
-  // ── Detalhe do ciclo selecionado ──────────────────────────────
-  html+='<div id="detalheAnualBox"></div>';
   cont.innerHTML=html;
 
   // Renderiza gráfico
@@ -1507,19 +1653,41 @@ function buildAnual(){
             label:function(it){var a=ANOS_ARQUIVO[anosAsc[it.dataIndex]];var L=['Alto risco','Médio risco','Baixo risco'],K=['alto','medio','baixo'];var v=a[K[it.datasetIndex]];return '  '+L[it.datasetIndex]+': '+v+' ('+pct(v,a.total)+')';},
             footer:function(it){return 'Total: '+fmt(ANOS_ARQUIVO[anosAsc[it[0].dataIndex]].total);}
           }}},
-        scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(0,0,0,0.05)'}},y:{stacked:true,ticks:{font:{size:11}},grid:{color:'rgba(0,0,0,0.05)'}}}
+        scales:{x:{ticks:{font:{size:12}},grid:{color:'rgba(45,41,38,0.04)'}},y:{stacked:true,ticks:{font:{size:11}},grid:{color:'rgba(45,41,38,0.04)'}}}
       }
     });
-    // Mostra detalhe do ano ativo por padrão
-    mostrarDetalheAnual(ANO_ATIVO);
+    // Abre o detalhe do ano ativo automaticamente
+    if(ANOS_ARQUIVO[ANO_ATIVO]){
+      mostrarDetalheAnual(ANO_ATIVO);
+    }
   },60);
+}
+
+function toggleAnoCard(ano){
+  var body=document.getElementById('anoBody_'+ano);
+  var chevron=document.getElementById('anoChevron_'+ano);
+  var card=document.getElementById('anoCard_'+ano);
+  if(!body)return;
+  var isOpen=body.style.display!=='none';
+  if(isOpen){
+    body.style.display='none';
+    if(chevron)chevron.style.transform='';
+    if(card)card.style.borderColor='var(--borda-light)';
+  } else {
+    body.style.display='block';
+    if(chevron)chevron.style.transform='rotate(180deg)';
+    if(card)card.style.borderColor='var(--verde-rich)';
+    // Scroll suave para o card
+    setTimeout(function(){card.scrollIntoView({behavior:'smooth',block:'nearest'});},50);
+  }
 }
 
 function mostrarDetalheAnual(ano){
   var d=ANOS_ARQUIVO[ano];
   if(!d)return;
-  var box=document.getElementById('detalheAnualBox');
-  if(!box)return;
+  // Renderiza dentro do corpo do card do ano
+  var body=document.getElementById('anoBody_'+ano);
+  if(!body)return;
   var html='<div style="margin-top:20px">';
   html+='<div style="font-size:14px;font-weight:700;color:#111;margin-bottom:14px;padding-bottom:8px;border-bottom:2px solid var(--verde)">Detalhamento completo — Ciclo '+ano+(ano===ANO_ATIVO?' <span style="font-size:11px;color:var(--verde);font-weight:400">(ativo)</span>':'')+'</div>';
 
@@ -1573,7 +1741,8 @@ function mostrarDetalheAnual(ano){
   html+='</tbody></table></div></div></div>';
 
   html+='</div>';
-  box.innerHTML=html;
+  body.innerHTML=html;
+  setTimeout(function(){body.scrollIntoView({behavior:'smooth',block:'nearest'});},80);
 }
 
 // ════════════════════════════════════════════════════════════════
@@ -1707,9 +1876,9 @@ function initCharts(){
 // Gráficos inicializados após login — ver confirmarLogin()
 </script>
 <!-- RODAPÉ -->
-<footer style="background:#111;color:#aaa;text-align:center;padding:18px 24px;font-size:11px;line-height:1.8;margin-top:40px">
+<footer style="background:linear-gradient(135deg,#0a2a1c 0%,#162e24 61.8%,#1a3d2c 100%);color:rgba(255,255,255,.55);text-align:center;padding:var(--s4) var(--s5);font-size:var(--f-xs);line-height:1.618;margin-top:var(--s6);border-top:1px solid rgba(29,158,117,.2)">
   <div style="max-width:1140px;margin:0 auto">
-    <div style="font-weight:600;color:#fff;font-size:13px;margin-bottom:4px">IVCF-20 — Sistema de Estratificação de Risco do Idoso</div>
+    <div style="font-weight:800;color:#a8e6cf;font-size:var(--f-lg);margin-bottom:var(--s1);letter-spacing:-.3px">IVCF-20 — Sistema de Estratificação de Risco do Idoso</div>
     <div>Secretaria Municipal de Saúde de Betim — Coordenação de Atenção Primária à Saúde (APS)</div>
     <div style="margin-top:6px">© 2026 Bruno Goecking Silva · CRM-MG 90830 · Todos os direitos reservados</div>
     <div style="margin-top:3px;color:#888;font-size:10px">Medicina de Família e Comunidade · RQE Nº 66514</div>
@@ -1719,4 +1888,4 @@ function initCharts(){
 
 
 
-<div style="position: fixed; bottom: 24px; right: 24px; background: rgb(136, 136, 136); color: rgb(255, 255, 255); padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 16px; z-index: 9999; max-width: 380px; line-height: 1.4;">⏳ Gerando HTML com dados atuais...</div><div style="position: fixed; bottom: 24px; right: 24px; background: rgb(136, 136, 136); color: rgb(255, 255, 255); padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 16px; z-index: 9999; max-width: 380px; line-height: 1.4;">⏳ Gerando HTML com dados atuais...</div></body></html>
+<div style="position: fixed; bottom: 24px; right: 24px; background: rgb(136, 136, 136); color: rgb(255, 255, 255); padding: 10px 18px; border-radius: 8px; font-size: 13px; font-weight: 600; box-shadow: rgba(0, 0, 0, 0.2) 0px 4px 16px; z-index: 9999; max-width: 380px; line-height: 1.4;">⏳ Gerando HTML com dados atuais...</div></body></html>
